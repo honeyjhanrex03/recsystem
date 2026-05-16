@@ -171,7 +171,7 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
                 <td><?php echo nl2br(htmlspecialchars($res['rec_recommendation'] ?? '')); ?></td>
                 <td><?php echo nl2br(htmlspecialchars($res['author_response'] ?? '')); ?></td>
                 <td style="text-align: center;"><?php echo htmlspecialchars($res['page_reference'] ?? ''); ?></td>
-                <td></td>
+                <td style="text-align: center; font-weight: bold;"><?php echo htmlspecialchars($res['rec_assessment'] ?? ''); ?></td>
             </tr>
             <?php endfor; ?>
         </tbody>

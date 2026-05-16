@@ -102,6 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_decision'])) {
         $stmtL = $pdo->prepare("INSERT INTO audit_logs (user_id, protocol_id, action) VALUES (?, ?, ?)");
         $stmtL->execute([$_SESSION['user_id'], $protocol_id, "Made final decision: $decision"]);
 
+        // 5. Update Form 15 Assessment if present
+        if (isset($_POST['f15_assessment'])) {
+            $stmtF15A = $pdo->prepare("UPDATE form15_responses SET rec_assessment = ? WHERE response_id = ?");
+            foreach ($_POST['f15_assessment'] as $resp_id => $assess) {
+                $stmtF15A->execute([$assess, $resp_id]);
+            }
+        }
+
         $pdo->commit();
         $success = "Final decision has been recorded and protocol status updated to " . strtoupper($finalStatus);
         
@@ -239,6 +247,51 @@ include '../includes/header.php';
                         </div>
                     </div>
                 </div>
+
+                <!-- Form 15 Assessment (Resubmission) -->
+                <?php 
+                $stmtF15 = $pdo->prepare("SELECT * FROM form15_responses WHERE protocol_id = ?");
+                $stmtF15->execute([$protocol_id]);
+                $f15_responses = $stmtF15->fetchAll();
+                if ($f15_responses): 
+                ?>
+                <div class="col-12 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="card-header bg-navy text-white py-3">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-tasks me-2"></i> REC FORM 15: Resubmission Assessment</h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4" style="width: 30%;">REC Recommendation</th>
+                                        <th style="width: 30%;">Author Response</th>
+                                        <th style="width: 10%;">Page</th>
+                                        <th class="pe-4" style="width: 30%;">REC Assessment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($f15_responses as $resp): ?>
+                                    <tr>
+                                        <td class="ps-4 py-3 text-muted"><?php echo nl2br(htmlspecialchars($resp['rec_recommendation'])); ?></td>
+                                        <td class="py-3"><?php echo nl2br(htmlspecialchars($resp['author_response'])); ?></td>
+                                        <td class="py-3 fw-bold text-navy"><?php echo htmlspecialchars($resp['page_reference']); ?></td>
+                                        <td class="pe-4 py-3">
+                                            <select name="f15_assessment[<?php echo $resp['response_id']; ?>]" class="form-select form-select-sm border-2">
+                                                <option value="" <?php echo empty($resp['rec_assessment']) ? 'selected' : ''; ?>>Pending...</option>
+                                                <option value="Adequate" <?php echo ($resp['rec_assessment'] == 'Adequate') ? 'selected' : ''; ?>>Adequate</option>
+                                                <option value="Inadequate" <?php echo ($resp['rec_assessment'] == 'Inadequate') ? 'selected' : ''; ?>>Inadequate</option>
+                                                <option value="Partially Adequate" <?php echo ($resp['rec_assessment'] == 'Partially Adequate') ? 'selected' : ''; ?>>Partially Adequate</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <!-- Decision Form -->
                 <div class="col-lg-8">

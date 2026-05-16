@@ -67,9 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['assign_now'])) {
 
             // 2. Insert new assignments with automatic 14-day deadline from today
             $deadline_date = date('Y-m-d', strtotime('+14 days'));
-            $stmtA = $pdo->prepare("INSERT INTO reviewer_assignments (protocol_id, reviewer_id, deadline) VALUES (?, ?, ?)");
+            $primary_id = (int)($_POST['primary_reviewer'] ?? 0);
+            
+            $stmtA = $pdo->prepare("INSERT INTO reviewer_assignments (protocol_id, reviewer_id, deadline, is_primary) VALUES (?, ?, ?, ?)");
             foreach ($all_reviewers as $rid) {
-                $stmtA->execute([$protocol_id, $rid, $deadline_date]);
+                $isP = ($rid === $primary_id) ? 1 : 0;
+                $stmtA->execute([$protocol_id, $rid, $deadline_date, $isP]);
             }
 
             // 3. Update protocol status (review_type already set by confirm_protocol.php)
@@ -221,39 +224,53 @@ include '../includes/header.php';
 
                         <!-- REC Member Selection -->
                         <div class="card border-0 shadow-sm rounded-4 mb-4">
-                            <div class="card-header bg-white py-3 border-bottom">
-                                <h5 class="mb-0 fw-bold"><i class="fas fa-users me-2"></i>Select REC Members</h5>
-                                <small class="text-muted">Minimum of 3 reviewers required (including yourself if
-                                    selected).</small>
+                            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0 fw-bold"><i class="fas fa-users me-2"></i>Select REC Members</h5>
+                                    <small class="text-muted">Minimum of 3 reviewers required.</small>
+                                </div>
+                                <div class="text-end small text-muted">
+                                    Mark one as <strong>Primary</strong>
+                                </div>
                             </div>
                             <div class="card-body p-0">
                                 <div class="list-group list-group-flush">
                                     <?php if (count($members) > 0): ?>
-                                        <?php foreach ($members as $m): ?>
-                                            <label class="list-group-item p-3 d-flex align-items-center"
-                                                style="cursor:pointer;">
-                                                <input class="form-check-input me-3 reviewer-check" type="checkbox"
-                                                    name="members[]" value="<?php echo $m['admin_id']; ?>"
-                                                    <?php echo in_array($m['admin_id'], $current_assignments) ? 'checked' : ''; ?>
-                                                    style="width:20px;height:20px;">
-                                                <div>
-                                                    <div class="fw-bold"><?php echo htmlspecialchars($m['name']); ?>
-                                                        <?php if($m['role'] === 'rec_secretary'): ?>
-                                                            <span class="badge bg-info-light text-info ms-1" style="font-size:0.6rem;">REC SECRETARY</span>
-                                                        <?php elseif($m['role'] === 'rec_staff'): ?>
-                                                            <span class="badge bg-secondary-light text-muted ms-1" style="font-size:0.6rem;">REC STAFF</span>
-                                                        <?php endif; ?>
+                                        <?php foreach ($members as $m): 
+                                            $isAssigned = in_array($m['admin_id'], $current_assignments);
+                                            // Check if already primary
+                                            $stmtPCheck = $pdo->prepare("SELECT is_primary FROM reviewer_assignments WHERE protocol_id = ? AND reviewer_id = ?");
+                                            $stmtPCheck->execute([$protocol_id, $m['admin_id']]);
+                                            $isPrimary = $stmtPCheck->fetchColumn();
+                                        ?>
+                                            <div class="list-group-item p-3 d-flex align-items-center justify-content-between">
+                                                <label class="d-flex align-items-center flex-grow-1" style="cursor:pointer;">
+                                                    <input class="form-check-input me-3 reviewer-check" type="checkbox"
+                                                        name="members[]" value="<?php echo $m['admin_id']; ?>"
+                                                        <?php echo $isAssigned ? 'checked' : ''; ?>
+                                                        style="width:20px;height:20px;">
+                                                    <div>
+                                                        <div class="fw-bold"><?php echo htmlspecialchars($m['name']); ?>
+                                                            <?php if($m['role'] === 'rec_secretary'): ?>
+                                                                <span class="badge bg-info-light text-info ms-1" style="font-size:0.6rem;">REC SECRETARY</span>
+                                                            <?php elseif($m['role'] === 'rec_staff'): ?>
+                                                                <span class="badge bg-secondary-light text-muted ms-1" style="font-size:0.6rem;">REC STAFF</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <small class="text-muted"><?php echo htmlspecialchars($m['email']); ?></small>
                                                     </div>
-                                                    <small
-                                                        class="text-muted"><?php echo htmlspecialchars($m['email']); ?></small>
+                                                </label>
+                                                <div class="ms-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input primary-radio" type="radio" name="primary_reviewer" value="<?php echo $m['admin_id']; ?>" <?php echo $isPrimary ? 'checked' : ''; ?> title="Mark as Primary Reviewer">
+                                                    </div>
                                                 </div>
-                                            </label>
+                                            </div>
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <div class="p-4 text-center text-muted">
                                             <i class="fas fa-user-slash fa-2x mb-2 opacity-25"></i>
-                                            <p class="mb-0">No active REC members found. Please ask Admin to create member
-                                                accounts.</p>
+                                            <p class="mb-0">No active REC members found. Please ask Admin to create member accounts.</p>
                                         </div>
                                     <?php endif; ?>
                                 </div>

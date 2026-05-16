@@ -39,6 +39,7 @@ $questions10 = [
     ['q' => 'Is/are the investigator/s adequately trained and do they have sufficient experience to undertake the study?'],
     ['q' => 'Is there a disclosure of conflict of interest?'],
     ['q' => 'Are the research facilities adequate?'],
+    ['q' => 'Does the protocol include a plan for dissemination of results to relevant stakeholders (e.g., institution, participants, community, policy makers), while ensuring confidentiality and ethical reporting?'],
     ['q' => 'Are there any other concerns in the study?'],
 ];
 

@@ -550,7 +550,7 @@ $questions12 = [
                             <tr>
                                 <td style="border: none; border-bottom: 1px solid black; border-right: 1px solid black; text-align: center; font-size: 9pt; width: 50%;">Primary reviewer</td>
                                 <td style="border: none; border-bottom: 1px solid black; text-align: center; font-size: 9pt;">
-                                    <?php echo chk($revIndex === 0 ? 'Yes' : 'No', 'Yes'); ?> <?php echo chk($revIndex === 0 ? 'Yes' : 'No', 'No'); ?>
+                                    <?php echo chk($rv['is_primary'] ? 'Yes' : 'No', 'Yes'); ?> <?php echo chk($rv['is_primary'] ? 'Yes' : 'No', 'No'); ?>
                                 </td>
                             </tr>
                             <tr>

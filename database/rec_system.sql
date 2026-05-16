@@ -221,6 +221,7 @@ CREATE TABLE `form15_responses` (
   `rec_recommendation` text NOT NULL,
   `author_response` text NOT NULL,
   `page_reference` varchar(255) DEFAULT NULL,
+  `rec_assessment` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `protocol_id` (`protocol_id`),
@@ -234,7 +235,7 @@ CREATE TABLE `form15_responses` (
 
 LOCK TABLES `form15_responses` WRITE;
 /*!40000 ALTER TABLE `form15_responses` DISABLE KEYS */;
-INSERT INTO `form15_responses` VALUES (1,1,22,'BOARD REVIEWER COMMENTS (Form 10):','asdasdasdas','1','2026-04-29 08:56:35'),(2,1,22,'[Reviewer 3] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdsadasd','2','2026-04-29 08:56:35'),(3,1,22,'[Reviewer 5] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdasd','2','2026-04-29 08:56:35'),(4,1,22,'[Reviewer 4] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdasd','3','2026-04-29 08:56:35'),(5,1,22,'[Reviewer 1] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdsad','4','2026-04-29 08:56:35'),(6,1,22,'[Reviewer 2] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdad','2','2026-04-29 08:56:35'),(7,1,22,'[Reviewer 7] Question: Does the study have social value?\r\n  [Reviewer Note] ssadasd','','','2026-04-29 08:56:35'),(8,1,22,'[Reviewer 7] Question: Is the study background adequate?\r\n  [Reviewer Note] asdasd','asda','1','2026-04-29 08:56:35'),(9,1,22,'[Reviewer 7] Question: Are there any other concerns in the study?\r\n  [Reviewer Note] dfgfdgdfg','asdsad','2','2026-04-29 08:56:35'),(10,1,22,'[Reviewer 6] Question: Simulated Question\r\n  [Reviewer Note] Proceed.\r\n\r\n\r\nCONSENT CHECKLIST CONCERNS (Form 12):','asdsad','2','2026-04-29 08:56:35'),(11,1,22,'[Reviewer 7] Check: Is it necessary to seek the informed consent of the participants?\r\n  [Reviewer Note] dfgdfg','asdsad','2','2026-04-29 08:56:35'),(12,1,22,'[Reviewer 7] Check: IFNO|Is it necessary to seek the informed consent of the participants?','asdsd','2','2026-04-29 08:56:35'),(13,1,22,'[Reviewer 7] Check: If YES, are the participants provided with sufficient information regarding:\r\n  [Reviewer Note] dfbdfbd\r\n\r\n\r\nSUMMARY OF REVIEWER DECISIONS:','asdasd','1','2026-04-29 08:56:35'),(14,1,22,'Reviewer 7: Approved','asdasd1','2','2026-04-29 08:56:35'),(15,1,22,'Reviewer 1: Approved','asdascasdc','23','2026-04-29 08:56:35'),(16,1,22,'Reviewer 2: Approved','asdsad','2','2026-04-29 08:56:35'),(17,1,22,'Reviewer 3: Approved','asdasd','3','2026-04-29 08:56:35'),(18,1,22,'Reviewer 4: Approved','asdasd','2','2026-04-29 08:56:35'),(19,1,22,'Reviewer 5: Approved','asdsad','1','2026-04-29 08:56:35'),(20,1,22,'Reviewer 6: Approved','asdasdasdasd','1','2026-04-29 08:56:35');
+INSERT INTO `form15_responses` VALUES (1,1,22,'BOARD REVIEWER COMMENTS (Form 10):','asdasdasdas','1',NULL,'2026-04-29 08:56:35'),(2,1,22,'[Reviewer 3] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdsadasd','2',NULL,'2026-04-29 08:56:35'),(3,1,22,'[Reviewer 5] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdasd','2',NULL,'2026-04-29 08:56:35'),(4,1,22,'[Reviewer 4] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdasd','3',NULL,'2026-04-29 08:56:35'),(5,1,22,'[Reviewer 1] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdsad','4',NULL,'2026-04-29 08:56:35'),(6,1,22,'[Reviewer 2] Question: Simulated Question\r\n  [Reviewer Note] Proceed.','asdad','2',NULL,'2026-04-29 08:56:35'),(7,1,22,'[Reviewer 7] Question: Does the study have social value?\r\n  [Reviewer Note] ssadasd','','',NULL,'2026-04-29 08:56:35'),(8,1,22,'[Reviewer 7] Question: Is the study background adequate?\r\n  [Reviewer Note] asdasd','asda','1',NULL,'2026-04-29 08:56:35'),(9,1,22,'[Reviewer 7] Question: Are there any other concerns in the study?\r\n  [Reviewer Note] dfgfdgdfg','asdsad','2',NULL,'2026-04-29 08:56:35'),(10,1,22,'[Reviewer 6] Question: Simulated Question\r\n  [Reviewer Note] Proceed.\r\n\r\n\r\nCONSENT CHECKLIST CONCERNS (Form 12):','asdsad','2',NULL,'2026-04-29 08:56:35'),(11,1,22,'[Reviewer 7] Check: Is it necessary to seek the informed consent of the participants?\r\n  [Reviewer Note] dfgdfg','asdsad','2',NULL,'2026-04-29 08:56:35'),(12,1,22,'[Reviewer 7] Check: IFNO|Is it necessary to seek the informed consent of the participants?','asdsd','2',NULL,'2026-04-29 08:56:35'),(13,1,22,'[Reviewer 7] Check: If YES, are the participants provided with sufficient information regarding:\r\n  [Reviewer Note] dfbdfbd\r\n\r\n\r\nSUMMARY OF REVIEWER DECISIONS:','asdasd','1',NULL,'2026-04-29 08:56:35'),(14,1,22,'Reviewer 7: Approved','asdasd1','2',NULL,'2026-04-29 08:56:35'),(15,1,22,'Reviewer 1: Approved','asdascasdc','23',NULL,'2026-04-29 08:56:35'),(16,1,22,'Reviewer 2: Approved','asdsad','2',NULL,'2026-04-29 08:56:35'),(17,1,22,'Reviewer 3: Approved','asdasd','3',NULL,'2026-04-29 08:56:35'),(18,1,22,'Reviewer 4: Approved','asdasd','2',NULL,'2026-04-29 08:56:35'),(19,1,22,'Reviewer 5: Approved','asdsad','1',NULL,'2026-04-29 08:56:35'),(20,1,22,'Reviewer 6: Approved','asdasdasdasd','1',NULL,'2026-04-29 08:56:35');
 /*!40000 ALTER TABLE `form15_responses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -445,6 +446,7 @@ CREATE TABLE `reviewer_assignments` (
   `status` enum('pending','completed') DEFAULT 'pending',
   `assigned_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `deadline` date DEFAULT NULL,
+  `is_primary` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`assignment_id`),
   KEY `protocol_id` (`protocol_id`),
   KEY `reviewer_id` (`reviewer_id`),
@@ -459,7 +461,7 @@ CREATE TABLE `reviewer_assignments` (
 
 LOCK TABLES `reviewer_assignments` WRITE;
 /*!40000 ALTER TABLE `reviewer_assignments` DISABLE KEYS */;
-INSERT INTO `reviewer_assignments` VALUES (1,1,17,'completed','2026-04-29 03:54:22','2026-05-13'),(2,1,18,'completed','2026-04-29 03:54:22','2026-05-13'),(3,1,2,'completed','2026-04-29 03:54:22','2026-05-13'),(4,1,4,'completed','2026-04-29 03:54:22','2026-05-13'),(5,1,3,'completed','2026-04-29 03:54:22','2026-05-13'),(6,1,21,'completed','2026-04-29 03:54:22','2026-05-13'),(7,1,19,'completed','2026-04-29 03:54:22','2026-05-13');
+INSERT INTO `reviewer_assignments` VALUES (1,1,17,'completed','2026-04-29 03:54:22','2026-05-13',0),(2,1,18,'completed','2026-04-29 03:54:22','2026-05-13',0),(3,1,2,'completed','2026-04-29 03:54:22','2026-05-13',0),(4,1,4,'completed','2026-04-29 03:54:22','2026-05-13',0),(5,1,3,'completed','2026-04-29 03:54:22','2026-05-13',0),(6,1,21,'completed','2026-04-29 03:54:22','2026-05-13',0),(7,1,19,'completed','2026-04-29 03:54:22','2026-05-13',0);
 /*!40000 ALTER TABLE `reviewer_assignments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -563,4 +565,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-16 11:20:02
+-- Dump completed on 2026-05-16 11:24:32
