@@ -1,0 +1,38 @@
+<?php
+// ============================================================
+// DNSC REC — Environment-Aware Database Configuration (TEMPLATE)
+// COPY THIS FILE TO database.php AND FILL IN YOUR DETAILS
+// ============================================================
+
+$hostname = $_SERVER['HTTP_HOST'] ?? 'localhost';
+if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+    $hostname = $_SERVER['HTTP_X_FORWARDED_HOST'];
+}
+
+$isLocal = ($_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1' || str_contains($hostname, 'localhost'));
+
+if ($isLocal) {
+    // ----- LOCAL (XAMPP) -----
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'rec_system');
+    define('BASE_URL', 'http://localhost/recras2.0/');
+
+} else {
+    // ----- LIVE HOST (Update with your hosting details) -----
+    define('DB_HOST', 'YOUR_LIVE_DB_HOST');
+    define('DB_USER', 'YOUR_LIVE_DB_USER');
+    define('DB_PASS', 'YOUR_LIVE_DB_PASSWORD');
+    define('DB_NAME', 'YOUR_LIVE_DB_NAME');
+    define('BASE_URL', 'https://your-domain.com/');
+}
+
+try {
+    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Database Connection Failed: " . $e->getMessage());
+}
+?>
