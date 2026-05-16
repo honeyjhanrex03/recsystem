@@ -156,6 +156,7 @@ $questions10 = [
     ['q' => 'Is/are the investigator/s adequately trained and do they have sufficient experience to undertake the study?'],
     ['q' => 'Is there a disclosure of conflict of interest?'],
     ['q' => 'Are the research facilities adequate?'],
+    ['q' => 'Does the protocol include a plan for dissemination of results to relevant stakeholders (e.g., institution, participants, community, policy makers), while ensuring confidentiality and ethical reporting?'],
     ['q' => 'Are there any other concerns in the study?'],
 ];
 
@@ -491,28 +492,27 @@ $questions12 = [
                     <td class="logo-cell" rowspan="2">
                         <img src="<?php echo $logoSrc; ?>" alt="DNSC Logo">
                     </td>
-                    <td class="form-title-cell" rowspan="2" style="width:45%;">
+                    <td class="form-title-cell" rowspan="2" style="width:45%; font-size: 11pt;">
                         STUDY RESEARCH/ PROTOCOL REVIEWER<br>WORKSHEET
                     </td>
-                    <td style="font-weight:bold; font-size:10pt; border:1px solid #000; padding:4px 8px;">
+                    <td style="font-weight:bold; font-size:10pt; border:1px solid #000; padding:4px 8px; text-align: center;">
                         RESEARCH ETHICS COMMITTEE
                     </td>
                 </tr>
                 <tr>
                     <td style="border:1px solid #000; padding:0;">
-                        <table style="width:100%; border-collapse:collapse;">
+                        <table style="width:100%; border-collapse:collapse; border: none;">
                             <tr>
-                                <td style="border:1px solid #000; padding:3px 6px; font-size:9.5pt;">REC Form No.</td>
-                                <td style="border:1px solid #000; padding:3px 6px; font-weight:bold;">10</td>
+                                <td style="border:none; border-right: 1px solid black; border-bottom: 1px solid black; padding:3px 6px; font-size:9pt;" width="60%">REC Form No.</td>
+                                <td style="border:none; border-bottom: 1px solid black; padding:3px 6px; font-weight:bold; text-align: center;">10</td>
                             </tr>
                             <tr>
-                                <td style="border:1px solid #000; padding:3px 6px; font-size:9.5pt;">Version No.</td>
-                                <td style="border:1px solid #000; padding:3px 6px; font-weight:bold;">01</td>
+                                <td style="border:none; border-right: 1px solid black; border-bottom: 1px solid black; padding:3px 6px; font-size:9pt;">Version No.</td>
+                                <td style="border:none; border-bottom: 1px solid black; padding:3px 6px; font-weight:bold; text-align: center;">01</td>
                             </tr>
                             <tr>
-                                <td style="border:1px solid #000; padding:3px 6px; font-size:9.5pt;">Date of Effectivity
-                                </td>
-                                <td style="border:1px solid #000; padding:3px 6px; font-weight:bold;">June 15, 2022</td>
+                                <td style="border:none; border-right: 1px solid black; padding:3px 6px; font-size:9pt;">Date of Effectivity</td>
+                                <td style="border:none; padding:3px 6px; font-weight:bold; text-align: center; font-size: 8pt;">June 15, 2022</td>
                             </tr>
                         </table>
                     </td>
@@ -520,160 +520,180 @@ $questions12 = [
             </table>
 
             <!-- Protocol Info -->
-            <table class="info-table">
+            <table class="info-table" style="margin-top: 15px;">
                 <tr>
-                    <td class="info-label" style="width:110px;">Title of Study</td>
-                    <td colspan="3" class="info-value"><?php echo htmlspecialchars($protocol['title']); ?></td>
+                    <td class="info-label" style="width:120px; vertical-align: middle;">Title of Study</td>
+                    <td colspan="3" class="info-value" style="font-size: 11pt;"><?php echo htmlspecialchars($protocol['title']); ?></td>
                 </tr>
                 <tr>
-                    <td class="info-label">REC Code</td>
-                    <td class="info-value" style="width:28%;"><?php echo htmlspecialchars($protocol['rec_code']); ?></td>
-                    <td class="info-label" style="width:90px;">Type of Review</td>
-                    <td class="info-value">
+                    <td class="info-label" style="vertical-align: middle;">REC Code</td>
+                    <td class="info-value" style="width:30%; vertical-align: middle;"><?php echo htmlspecialchars($protocol['rec_code']); ?></td>
+                    <td class="info-label" style="width:100px; text-align: center; vertical-align: middle;">Type of<br>Review</td>
+                    <td class="info-value" style="text-align: center; vertical-align: middle; font-size: 11pt;">
                         <?php 
-                        $rtMap = ['pending'=>'PENDING REVIEW TYPE', 'exempt'=>'EXEMPTED FROM REVIEW', 'expedited'=>'EXPEDITED REVIEW', 'full_board'=>'FULL REVIEW'];
+                        $rtMap = ['pending'=>'PENDING', 'exempt'=>'EXEMPTED', 'expedited'=>'EXPEDITED REVIEW', 'full_board'=>'FULL REVIEW'];
                         echo $rtMap[$protocol['review_type']] ?? strtoupper(str_replace('_', ' ', $protocol['review_type'])); 
                         ?>
                     </td>
                 </tr>
                 <tr>
-                    <td class="info-label">Project Leader</td>
-                    <td class="info-value"><?php echo htmlspecialchars($protocol['project_leader']); ?></td>
-                    <td class="info-label">Institution</td>
-                    <td class="info-value"><?php echo htmlspecialchars($protocol['institution']); ?></td>
-                </tr>
-                <tr>
-                    <td class="info-label" rowspan="2">Reviewer</td>
-                    <td class="info-value" rowspan="2"><?php echo htmlspecialchars($rv['reviewer_name']); ?></td>
-                    <td class="info-label" style="font-size:9pt;">Primary reviewer</td>
-                    <td style="white-space:nowrap; font-size:10pt;">
-                        ☑ Yes &nbsp;&nbsp; ☐ No
+                    <td class="info-label" style="vertical-align: middle;">Reviewer</td>
+                    <td class="info-value" style="vertical-align: middle;"><?php echo htmlspecialchars($rv['reviewer_name']); ?></td>
+                    <td style="padding: 0; width: 100px;">
+                        <table style="width: 100%; border-collapse: collapse; border: none;">
+                            <tr><td style="border: none; border-bottom: 1px solid black; height: 20px;"></td></tr>
+                            <tr><td style="border: none; font-size: 9pt; text-align: center;">Date Received</td></tr>
+                        </table>
                     </td>
-                </tr>
-                <tr>
-                    <td class="info-label">Date Received</td>
-                    <td style="font-size:10pt;"><?php echo date('F d, Y', strtotime($rv['assigned_at'])); ?></td>
+                    <td style="padding: 0;">
+                        <table style="width: 100%; border-collapse: collapse; border: none;">
+                            <tr>
+                                <td style="border: none; border-bottom: 1px solid black; border-right: 1px solid black; text-align: center; font-size: 9pt; width: 50%;">Primary reviewer</td>
+                                <td style="border: none; border-bottom: 1px solid black; text-align: center; font-size: 9pt;">
+                                    <?php echo chk($revIndex === 0 ? 'Yes' : 'No', 'Yes'); ?> <?php echo chk($revIndex === 0 ? 'Yes' : 'No', 'No'); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="border: none; height: 20px; text-align: center; vertical-align: middle; font-weight: bold;">
+                                    <?php echo date('F d, Y', strtotime($rv['assigned_at'])); ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
                 </tr>
             </table>
 
             <!-- Section Title -->
-            <div class="section-header">Guide questions for reviewing the proposal / protocol</div>
+            <div class="section-header" style="background: #d9d9d9; color: black; border: 1px solid black; border-bottom: none; font-weight: normal;">Guide questions for reviewing the proposal / protocol</div>
 
             <!-- Questions -->
-            <table class="q-table">
-                <thead>
-                    <tr>
-                        <td colspan="2" style="border:none; height:15pt; padding:0;"></td>
-                    </tr>
-                </thead>
+            <table class="q-table" style="border-top: 1px solid black;">
                 <tbody>
-                <?php foreach ($questions10 as $i => $qdata):
+                <?php 
+                $pageOneLimit = 5; // Split after question 5 as per image
+                foreach ($questions10 as $i => $qdata):
                     $row = $ans10[$qdata['q']] ?? null;
                     $answer = $row['answer'] ?? '';
                     $comment = $row['comment'] ?? '';
-                    ?>
+                    
+                    if ($i == $pageOneLimit): ?>
+                </tbody>
+            </table>
+            <div style="position: absolute; bottom: 0.5in; right: 0.5in;">129</div>
+        </div>
+
+        <div class="form-page page-break">
+            <table class="q-table" style="border-top: 1px solid black;">
+                <tbody>
+                <?php endif; ?>
+
                     <tr>
-                        <td
-                            style="width:55%; font-weight:bold; font-size:10pt; padding:6px 8px; border:1px solid #000; vertical-align:top;">
-                            <?php echo ($i + 1) . ". " . htmlspecialchars($qdata['q']); ?>
-                            <?php if (!empty($qdata['hint'])): ?>
-                                <br><span
-                                    style="font-weight:normal; font-style:italic; font-size:9pt;"><?php echo htmlspecialchars($qdata['hint']); ?></span>
-                            <?php endif; ?>
+                        <td style="width:55%; font-size:10pt; padding:8px; border:1px solid #000; vertical-align:top;">
+                            <strong><?php echo ($i + 1) . ". " . htmlspecialchars($qdata['q']); ?></strong>
+                            <br><span style="font-size:9.5pt;">Comment: <?php echo htmlspecialchars($qdata['hint'] ?? ''); ?></span>
 
                             <?php if (!empty($qdata['sub'])): ?>
-                                <ul style="margin-top:6px; padding-left:16px; font-weight:normal; font-size:10pt;">
+                                <ul style="margin-top:8px; padding-left:25px; list-style-type: disc;">
                                     <?php foreach ($qdata['sub'] as $si => $sq):
                                         $subKey = 'SUB|' . $qdata['q'] . '|' . $sq;
                                         $subAns = $sub10[$subKey] ?? '';
                                         ?>
-                                        <li style="margin-bottom:4px;">
+                                        <li style="margin-bottom:8px; position: relative;">
                                             <?php echo htmlspecialchars($sq); ?>
+                                            <div style="position: absolute; right: -80%; top: 0; white-space: nowrap;">
+                                                <?php echo chk($subAns, 'Unable to Assess'); ?>
+                                                <?php echo chk($subAns, 'Yes'); ?>
+                                                <?php echo chk($subAns, 'No'); ?>
+                                            </div>
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>
                             <?php endif; ?>
+                            
+                            <?php if ($comment): ?>
+                                <div style="margin-top: 10px; font-style: italic; font-size: 9.5pt; color: #444;">
+                                    <?php echo nl2br(htmlspecialchars($comment)); ?>
+                                </div>
+                            <?php endif; ?>
                         </td>
 
                         <?php if (empty($qdata['sub'])): ?>
-                            <td style="white-space:nowrap; border:1px solid #000; padding:6px 8px; vertical-align:top;">
-                                <?php echo chk($answer, 'Unable to Assess'); ?><br>
-                                <?php echo chk($answer, 'Yes'); ?><br>
+                            <td style="white-space:nowrap; border:1px solid #000; padding:8px; vertical-align:top; text-align: center;">
+                                <?php echo chk($answer, 'Unable to Assess'); ?>
+                                <?php echo chk($answer, 'Yes'); ?>
                                 <?php echo chk($answer, 'No'); ?>
                             </td>
                         <?php else: ?>
-                            <td style="border:1px solid #000; padding:6px 8px; vertical-align:top; font-size:10pt;">
-                                <?php foreach ($qdata['sub'] as $si => $sq):
-                                    $subKey = 'SUB|' . $qdata['q'] . '|' . $sq;
-                                    $subAns = $sub10[$subKey] ?? '';
-                                    ?>
-                                    <div style="margin-bottom:4px;">
-                                        <?php echo chk($subAns, 'Unable to Assess'); ?>
-                                        <?php echo chk($subAns, 'Yes'); ?>
-                                        <?php echo chk($subAns, 'No'); ?>
-                                    </div>
-                                <?php endforeach; ?>
+                            <td style="border:1px solid #000; padding:8px; vertical-align:top;">
+                                <!-- Checkboxes handled inside the sub-list for alignment -->
                             </td>
                         <?php endif; ?>
                     </tr>
-                    <?php if ($comment): ?>
-                        <tr>
-                            <td colspan="2" style="padding:4px 8px; font-size:9.5pt; border:1px solid #000; background:#fafafa;">
-                                <strong>Comment:</strong> <?php echo nl2br(htmlspecialchars($comment)); ?>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
                 <?php endforeach; ?>
                 </tbody>
             </table>
+            <div style="position: absolute; bottom: 0.5in; right: 0.5in;">130</div>
+        </div>
 
-            <!-- Keep Recommendation and Signature together -->
-            <div style="page-break-inside: avoid; break-inside: avoid; padding-top: 60pt;">
-                <!-- Recommendation -->
-                <div class="rec-section">
-                    <div class="rec-title">Recommendation:</div>
-                    <?php $recMap10 = ['Approved', 'Minor Revision', 'Major Revision', 'Disapproved'];
-                    foreach ($recMap10 as $r):
-                        $isChosen = $rec10 && $rec10['recommendation'] === $r;
-                        ?>
-                        <div style="margin-bottom:6pt; font-size:10pt;">
-                            <?php echo $isChosen ? '☑' : '☐'; ?>         <?php echo $r; ?>
-                            <?php if ($r !== 'Approved'): ?> required<?php endif; ?>
+        <!-- RECOMMENDATION PAGE -->
+        <div class="form-page page-break">
+            <div style="margin-top: 40px; font-size: 11pt;">
+                <div style="display: flex; margin-bottom: 25px;">
+                    <strong style="width: 150px;">Recommendation:</strong>
+                    <div>
+                        <div style="margin-bottom: 15px;"><?php echo chk($rec10['recommendation'] ?? '', 'Approved'); ?> <strong>Approved</strong></div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <?php echo chk($rec10['recommendation'] ?? '', 'Minor Revision'); ?> <strong>Minor revision/s required</strong>
+                            <div style="margin-top: 10px; border-bottom: 1px solid black; width: 450px; height: 25px;"></div>
+                            <div style="margin-top: 10px; border-bottom: 1px solid black; width: 450px; height: 25px;"></div>
                         </div>
-                        <?php if ($r !== 'Approved' && $isChosen && $rec10['notes']): ?>
-                            <div style="padding-left:20pt; color:#333; font-size:9.5pt; margin-bottom:4pt;">
-                                <?php echo nl2br(htmlspecialchars($rec10['notes'])); ?>
+
+                        <div style="margin-bottom: 15px;">
+                            <?php echo chk($rec10['recommendation'] ?? '', 'Major Revision'); ?> <strong>Major revision/s required</strong>
+                            <div style="margin-top: 10px; border-bottom: 1px solid black; width: 450px; height: 25px;"></div>
+                            <div style="margin-top: 10px; border-bottom: 1px solid black; width: 450px; height: 25px;"></div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <?php echo chk($rec10['recommendation'] ?? '', 'Disapproved'); ?> <strong>Disapproved</strong>
+                            <div style="margin-left: 30px; margin-top: 10px;">
+                                Reasons for disapproval:
+                                <div style="margin-top: 10px; border-bottom: 1px solid black; width: 420px; height: 25px;"></div>
+                                <div style="margin-top: 10px; border-bottom: 1px solid black; width: 420px; height: 25px;"></div>
                             </div>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                    <?php if ($rec10 && $rec10['recommendation'] === 'Disapproved'): ?>
-                        <div style="margin-top:6pt; font-size:10pt;"><strong>Reasons for disapproval:</strong><br>
-                            <?php echo nl2br(htmlspecialchars($rec10['notes'] ?? '')); ?>
                         </div>
-                    <?php endif; ?>
+                    </div>
                 </div>
 
-                <div style="margin-top:40pt;">
-                    <table style="width:100%;">
-                        <tr>
-                            <td style="width:50%;"></td>
-                            <td style="width:50%; text-align:center;">
-                                <?php echo renderSignature($rv['reviewer_sig'], '150px'); ?>
-                                <div style="width:250px; border-top:1.5pt solid #000; margin:0 auto; padding-top:3pt;">
-                                    <strong style="font-size:11pt; letter-spacing:0.5px;"><?php echo strtoupper($rv['reviewer_name']); ?></strong><br>
-                                    <span style="font-size:9pt; color:#000;">Signature over Printed Name</span><br>
-                                    <span style="font-size:9pt; color:#000;">Reviewer</span>
-                                </div>
-                                <div style="margin-top:4pt; font-size:10pt;">
-                                    Date: <strong><?php echo date('F d, Y', strtotime($rec10['created_at'] ?? date('Y-m-d'))); ?></strong>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <!-- Notes display if any -->
+                <?php if (!empty($rec10['notes'])): ?>
+                    <div style="margin-top: 20px; padding: 15px; border: 1px dashed #ccc; font-style: italic;">
+                        <strong>Reviewer Notes:</strong><br>
+                        <?php echo nl2br(htmlspecialchars($rec10['notes'])); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div style="margin-top: 100px; display: flex; justify-content: space-between;">
+                <div style="text-align: center; width: 350px;">
+                    <div style="border-bottom: 1px solid black; margin-bottom: 5px;">
+                        <?php echo renderSignature($rv['reviewer_sig'], '180px'); ?>
+                    </div>
+                    <div style="font-size: 10pt;">Name and Signature of Reviewer</div>
+                </div>
+                <div style="text-align: center; width: 200px;">
+                    <div style="border-bottom: 1px solid black; margin-bottom: 5px; height: 50px; vertical-align: bottom; display: flex; align-items: flex-end; justify-content: center;">
+                        <strong><?php echo date('F d, Y', strtotime($rec10['created_at'] ?? date('Y-m-d'))); ?></strong>
+                    </div>
+                    <div style="font-size: 10pt;">Review Date</div>
                 </div>
             </div>
 
-        </div><!-- /.form-page Form 10 -->
+            <div style="position: absolute; bottom: 0.5in; right: 0.5in;">131</div>
+        </div><!-- /.form-page Recommendation -->
+
+
 
         <!-- ══════════════════════════════════════════════════════════════
      REC FORM 12 — <?php echo htmlspecialchars($rv['reviewer_name']); ?>
