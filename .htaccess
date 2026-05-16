@@ -1,0 +1,33 @@
+# RECRAS — Universal Clean URL Engine
+# ----------------------------------
+
+Options -MultiViews
+RewriteEngine On
+
+# DO NOT set RewriteBase / if your project is in a subfolder.
+# Commenting it out allows it to work on BOTH localhost/subfolder and live-host/root.
+# RewriteBase /
+
+# 1. Skip if request is an actual file or directory
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 2. Force Redirect direct .php requests to clean URLs
+# This strips .php from the browser address bar
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# 3. Specifically handle index.php -> /
+RewriteCond %{THE_REQUEST} \s/+(.+?)/index[\s?] [NC]
+RewriteRule ^ /%1/ [R=301,L]
+
+# 4. Specific alias for 'login' -> systemadministrator.php
+RewriteRule ^login/?$ systemadministrator.php [L,QSA]
+
+# 5. Handle extensionless requests internally
+# This maps /file back to /file.php without changing the URL
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*?)/?$ $1.php [L,QSA]

@@ -1,0 +1,16 @@
+# DNSC REC Git Ignore
+
+# Dependencies
+vendor/
+
+# User Uploads (Sensitive Data)
+uploads/protocols/*
+!uploads/protocols/.gitkeep
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Database Config & Secrets
+config/database.php
+config/secrets.php

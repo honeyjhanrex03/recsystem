@@ -1,0 +1,32 @@
+<svg viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Pattern -->
+  <circle cx="400" cy="300" r="300" fill="#F1F5F9" fill-opacity="0.5"/>
+  
+  <!-- Main Desk/Workspace -->
+  <rect x="150" y="450" width="500" height="20" rx="10" fill="#CBD5E1"/>
+  
+  <!-- Large Book (Ethics/Review) -->
+  <rect x="250" y="200" width="300" height="250" rx="4" fill="#1A2B4B"/>
+  <rect x="540" y="200" width="10" height="250" rx="2" fill="#0F172A"/>
+  <rect x="270" y="230" width="220" height="15" rx="2" fill="white" fill-opacity="0.2"/>
+  <rect x="270" y="260" width="200" height="10" rx="2" fill="white" fill-opacity="0.1"/>
+  <rect x="270" y="280" width="180" height="10" rx="2" fill="white" fill-opacity="0.1"/>
+  
+  <!-- Document with Seal -->
+  <rect x="400" y="100" width="220" height="300" rx="4" fill="white" stroke="#E2E8F0" stroke-width="2"/>
+  <rect x="430" y="140" width="160" height="10" rx="2" fill="#E2E8F0"/>
+  <rect x="430" y="165" width="140" height="8" rx="2" fill="#F1F5F9"/>
+  <rect x="430" y="185" width="150" height="8" rx="2" fill="#F1F5F9"/>
+  <circle cx="550" cy="340" r="25" fill="#3B82F6" fill-opacity="0.2"/>
+  <path d="M540 340L548 348L560 332" stroke="#3B82F6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Character/Scientist -->
+  <circle cx="200" cy="250" r="40" fill="#3B82F6" fill-opacity="0.8"/>
+  <path d="M120 450C120 350 280 350 280 450" fill="#1A365D"/>
+  <rect x="180" y="230" width="40" height="10" rx="2" fill="#0F172A" fill-opacity="0.3"/>
+  
+  <!-- Floating Elements -->
+  <circle cx="100" cy="150" r="15" fill="#F59E0B" fill-opacity="0.6"/>
+  <rect x="650" y="120" width="30" height="30" rx="8" fill="#10B981" transform="rotate(20 650 120)"/>
+  <path d="M700 400L730 430M730 400L700 430" stroke="#EF4444" stroke-width="6" stroke-linecap="round"/>
+</svg>
