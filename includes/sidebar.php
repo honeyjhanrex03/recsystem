@@ -19,6 +19,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <i class="fas fa-th-large"></i> Dashboard
         </a>
 
+        <a class="list-group-item <?php echo ($current_page == 'document_center.php') ? 'active' : ''; ?>"
+            href="<?php echo BASE_URL; ?>document_center">
+            <i class="fas fa-file-invoice"></i> REC Forms
+        </a>
+
         <?php if ($_SESSION['role'] == 'admin'):
             // Fetch counts for badges
             $pendingUsers = $pdo->query("SELECT COUNT(*) FROM users WHERE status = 'pending'")->fetchColumn();

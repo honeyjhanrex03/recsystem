@@ -27,11 +27,23 @@ if (!$user) {
     }
 }
 
-$success = "";
-$error = "";
+$success = $_SESSION['profile_success'] ?? '';
+$error = $_SESSION['profile_error'] ?? '';
+unset($_SESSION['profile_success'], $_SESSION['profile_error']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = $_POST['name'];
+    $first_name = '';
+    $last_name = '';
+    $middle_initial = '';
+    
+    if ($is_author) {
+        $first_name = trim($_POST['first_name']);
+        $last_name = trim($_POST['last_name']);
+        $middle_initial = trim($_POST['middle_initial'] ?? '');
+        $name = trim($first_name . ' ' . $middle_initial . ' ' . $last_name);
+    } else {
+        $name = $_POST['name'];
+    }
     $email = $_POST['email'];
     $new_password = $_POST['new_password'] ?? '';
     $sig_data = $_POST['signature_data'] ?? '';
@@ -45,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sig_filename = $user['signature'];
 
         // Handle new signature drawing
-        if (!$is_author && !empty($sig_data)) {
+        if (!empty($sig_data)) {
             $sig_data = str_replace('data:image/png;base64,', '', $sig_data);
             $sig_data = str_replace(' ', '+', $sig_data);
             $data = base64_decode($sig_data);
@@ -54,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             file_put_contents('../uploads/signatures/' . $sig_filename, $data);
         }
         // Handle new signature file upload
-        elseif (!$is_author && isset($_FILES['signature_file']) && $_FILES['signature_file']['error'] === 0) {
+        elseif (isset($_FILES['signature_file']) && $_FILES['signature_file']['error'] === 0) {
             $ext = strtolower(pathinfo($_FILES['signature_file']['name'], PATHINFO_EXTENSION));
             if ($ext === 'png') {
                 $sig_filename = 'sig_file_' . time() . '_' . uniqid() . '.png';
@@ -77,22 +89,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($new_password)) {
             $hashed = password_hash($new_password, PASSWORD_DEFAULT);
             if ($is_author) {
-                $parts = explode(' ', $name, 2);
-                $fname = $parts[0];
-                $lname = $parts[1] ?? 'Unknown';
-                $update = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, signature = ?, password = ? WHERE user_id = ?");
-                $update->execute([$fname, $lname, $email, $sig_filename, $hashed, $user_id]);
+                $update = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, middle_initial = ?, email = ?, signature = ?, password = ? WHERE user_id = ?");
+                $update->execute([$first_name, $last_name, $middle_initial, $email, $sig_filename, $hashed, $user_id]);
             } else {
                 $update = $pdo->prepare("UPDATE admins SET name = ?, email = ?, signature = ?, password = ?, academic_rank = ?, academic_degree = ?, profile_image = ? WHERE admin_id = ?");
                 $update->execute([$name, $email, $sig_filename, $hashed, $rank, $degree, $prof_filename, $user_id]);
             }
         } else {
             if ($is_author) {
-                $parts = explode(' ', $name, 2);
-                $fname = $parts[0];
-                $lname = $parts[1] ?? 'Unknown';
-                $update = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE user_id = ?");
-                $update->execute([$fname, $lname, $email, $user_id]);
+                $update = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, middle_initial = ?, email = ?, signature = ? WHERE user_id = ?");
+                $update->execute([$first_name, $last_name, $middle_initial, $email, $sig_filename, $user_id]);
             } else {
                 $update = $pdo->prepare("UPDATE admins SET name = ?, email = ?, signature = ?, academic_rank = ?, academic_degree = ?, profile_image = ? WHERE admin_id = ?");
                 $update->execute([$name, $email, $sig_filename, $rank, $degree, $prof_filename, $user_id]);
@@ -104,17 +110,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $log->execute([$user_id, $msg]);
 
         $pdo->commit();
-        $success = "Profile updated successfully.";
+        $_SESSION['profile_success'] = "Profile updated successfully.";
         
         // Refresh session name if changed
         $_SESSION['name'] = $name;
 
-        // Refresh user data
-        $stmt->execute([$user_id]);
-        $user = $stmt->fetch();
+        header("Location: profile.php");
+        exit();
     } catch (Exception $e) {
         $pdo->rollBack();
-        $error = $e->getMessage();
+        $_SESSION['profile_error'] = $e->getMessage();
+        header("Location: profile.php");
+        exit();
     }
 }
 
@@ -134,15 +141,42 @@ include '../includes/header.php';
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4 animate-up">
                         <div class="card-body p-4 p-md-5">
+                            <?php if (!empty($success)): ?>
+                                <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
+                                    <i class="fas fa-check-circle me-2"></i> <?php echo htmlspecialchars($success); ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (!empty($error)): ?>
+                                <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4">
+                                    <i class="fas fa-exclamation-circle me-2"></i> <?php echo htmlspecialchars($error); ?>
+                                </div>
+                            <?php endif; ?>
                             <form method="POST" id="profileForm" enctype="multipart/form-data">
                                 <div class="row g-4">
                                     <div class="col-md-6">
                                         <h4 class="fw-bold text-navy mb-4">Account Information</h4>
+                                        <?php if ($is_author): ?>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase">First Name</label>
+                                            <input type="text" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user['first_name']); ?>" required>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-8">
+                                                <label class="form-label fw-bold small text-muted text-uppercase">Last Name</label>
+                                                <input type="text" name="last_name" class="form-control" value="<?php echo htmlspecialchars($user['last_name']); ?>" required>
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label fw-bold small text-muted text-uppercase">M.I.</label>
+                                                <input type="text" name="middle_initial" class="form-control text-center" maxlength="2" value="<?php echo htmlspecialchars($user['middle_initial'] ?? ''); ?>">
+                                            </div>
+                                        </div>
+                                        <?php else: ?>
                                         <div class="mb-3">
                                             <label class="form-label fw-bold small text-muted text-uppercase">Full Name</label>
                                             <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($user['name']); ?>" required>
                                             <small class="text-muted" style="font-size:0.7rem;">Format: Last Name, First Name, M.I.</small>
                                         </div>
+                                        <?php endif; ?>
                                         <div class="mb-3">
                                             <label class="form-label fw-bold small text-muted text-uppercase">Email Address</label>
                                             <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email']); ?>" required>
@@ -172,9 +206,8 @@ include '../includes/header.php';
                                             </div>
                                         </div>
                                     </div>
-
-                                    <?php if (!$is_author): ?>
                                     <div class="col-md-6 border-start ps-md-4">
+                                        <?php if (!$is_author): ?>
                                         <div class="mb-4">
                                             <label class="form-label fw-bold small text-muted text-uppercase d-block">Profile Photo</label>
                                             <div class="d-flex align-items-center gap-3">
@@ -191,6 +224,7 @@ include '../includes/header.php';
                                                 </div>
                                             </div>
                                         </div>
+                                        <?php endif; ?>
 
                                         <h4 class="fw-bold text-navy mb-4">Digital E-Signature</h4>
                                         <div class="mb-3">
@@ -222,10 +256,7 @@ include '../includes/header.php';
                                                     <input type="file" name="signature_file" class="form-control form-control-sm" accept="image/png">
                                                     <small class="text-muted" style="font-size: 0.7rem;">Transparency (PNG) recommended.</small>
                                                 </div>
-                                            </div>
-                                        </div>
                                     </div>
-                                    <?php endif; ?>
                                 </div>
 
                                 <div class="d-flex justify-content-between mt-5 pt-3 border-top">

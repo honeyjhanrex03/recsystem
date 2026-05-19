@@ -14,61 +14,105 @@ $p = $stmt->fetch();
 
 if (!$p) die("Protocol not found.");
 
-// Fetch Decision
-$stmtD = $pdo->prepare("SELECT * FROM final_decisions WHERE protocol_id = ? ORDER BY decision_date DESC LIMIT 1");
+// Fetch Decision Date and Chair who approved it
+$stmtD = $pdo->prepare("SELECT fd.*, u.name as chair_name, u.signature as chair_sig FROM final_decisions fd LEFT JOIN admins u ON fd.chair_id = u.admin_id WHERE fd.protocol_id = ? ORDER BY fd.decision_date DESC LIMIT 1");
 $stmtD->execute([$protocol_id]);
 $decision = $stmtD->fetch();
 
-// REC Chair info
-$stmtC = $pdo->prepare("SELECT name FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
+// Current active REC Chair fallback info
+$stmtC = $pdo->prepare("SELECT name, signature FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
 $stmtC->execute();
 $chair = $stmtC->fetch();
 $chair_name = $chair ? $chair['name'] : "DNSC REC CHAIRPERSON";
 
+// Determine dynamic values
+$decision_chair = ($decision && !empty($decision['chair_name'])) ? $decision['chair_name'] : $chair_name;
+$decision_chair_sig = ($decision && !empty($decision['chair_sig'])) ? $decision['chair_sig'] : ($chair ? $chair['signature'] : null);
+
+// Extract last name for salutation
+$leader_name = trim($p['project_leader']);
+$lastName = '';
+if (str_contains($leader_name, ',')) {
+    // Format: "Limbadan, Allan D."
+    $parts = explode(',', $leader_name);
+    $lastName = trim($parts[0]);
+} else {
+    // Format: "Allan D. Limbadan"
+    $parts = explode(' ', $leader_name);
+    $lastName = end($parts);
+}
+
+// Map review type for dynamic grammar ("a" or "an")
+$rtMap = [
+    'pending' => 'Pending Review',
+    'exempt' => 'Exempt Review',
+    'expedited' => 'Expedited Review',
+    'full_board' => 'Full Board Review'
+];
+$reviewTypeStr = $rtMap[$p['review_type']] ?? 'Ethical Review';
+$firstLetter = strtolower(substr($reviewTypeStr, 0, 1));
+$article = in_array($firstLetter, ['a', 'e', 'i', 'o', 'u']) ? 'an' : 'a';
+
 $headerSrc = BASE_URL . 'assets/images/header.png';
 $footerSrc = BASE_URL . 'assets/images/footer.png';
+
+function renderSignature(?string $sig_filename, string $width = '150px'): string {
+    if (!$sig_filename) return '<div style="height:35px;"></div>';
+    return '<img src="' . BASE_URL . 'uploads/signatures/' . $sig_filename . '" style="width:' . $width . '; height:auto; display:block; margin-bottom:-45px; margin-left:25px; position:relative; z-index:10; pointer-events:none; filter: multiply(0.8); opacity: 0.95;">';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>REC FORM 25 - ETHICAL CLEARANCE</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="shortcut icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png?v=1.1">
     <style>
         @page { size: A4 portrait; margin: 0; }
-        body { font-family: 'Times New Roman', serif; font-size: 11pt; color: #000; line-height: 1.3; margin: 0; padding: 0; }
-        .page-container { width: 8.27in; min-height: 11.69in; margin: 0 auto; position: relative; background: white; padding: 0 0.5in; box-sizing: border-box; }
+        body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.35; margin: 0; padding: 0; }
+        .page-container { width: 8.27in; min-height: 11.69in; margin: 0 auto; position: relative; background: white; padding: 0 0.55in; box-sizing: border-box; }
         
-        .header-img { width: 100%; margin-top: 0.2in; }
-        .footer-img { width: 100%; position: absolute; bottom: 0.25in; left: 0; padding: 0 0.5in; box-sizing: border-box; }
+        .header-img { width: 100%; margin-top: 0.25in; }
+        .footer-img { width: 100%; position: absolute; bottom: 0.25in; left: 0; padding: 0 0.55in; box-sizing: border-box; }
         
-        .control-table { position: absolute; top: 1.1in; right: 0.5in; width: 1.8in; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 8pt; }
-        .control-table td { border: 1px solid black; padding: 2px 5px; }
-        
-        .content { padding: 0.2in 0.4in; margin-top: 0.8in; }
+        .content { padding: 0.1in 0.4in; margin-top: 0.15in; }
         .center-text { text-align: center; }
         .bold { font-weight: bold; }
         .underline { text-decoration: underline; }
         
-        .letter-date { margin-bottom: 25px; }
-        .proponent-block { margin-bottom: 25px; }
-        .re-block { margin-bottom: 25px; }
+        .letter-date { margin-bottom: 12px; font-size: 11pt; }
         
-        ul { list-style-type: none; padding-left: 0.6in; margin: 15px 0; }
-        ul li::before { content: "•"; margin-left: -0.3in; display: inline-block; width: 0.3in; }
+        .proponent-block { margin-bottom: 12px; line-height: 1.3; }
+        .proponent-name { font-weight: bold; text-transform: uppercase; font-size: 11.5pt; }
         
-        .sig-block { margin-top: 50px; }
+        .re-block { margin-bottom: 12px; line-height: 1.35; text-align: justify; }
+        
+        .salutation { margin-bottom: 12px; }
+        .salutation em { font-style: italic; }
+        
+        ul { list-style-type: disc; padding-left: 0.4in; margin: 8px 0; }
+        ul li { font-size: 11pt; margin-bottom: 2px; text-align: justify; line-height: 1.3; }
+        
+        .body-paragraph { text-align: justify; margin-top: 8px; margin-bottom: 8px; line-height: 1.35; }
+        
+        .sig-block { margin-top: 20px; line-height: 1.3; }
+        .sig-name { font-weight: bold; text-transform: uppercase; font-size: 11.5pt; }
         
         @media print {
             .no-print { display: none; }
-            .page-container { border: none; box-shadow: none; margin: 0; }
+            body { background: none; }
+            .page-container { border: none; box-shadow: none; margin: 0; padding: 0 0.55in; }
         }
     </style>
 </head>
 <body>
 
 <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-    <button onclick="window.print()" style="padding: 10px 20px; background: #198754; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-        PRINT CLEARANCE
+    <button onclick="window.print()" style="padding: 12px 30px; background: #1a2b4b; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+        <i class="fas fa-print me-2"></i> PRINT CLEARANCE
     </button>
 </div>
 
@@ -76,59 +120,42 @@ $footerSrc = BASE_URL . 'assets/images/footer.png';
     <!-- Header Image -->
     <img src="<?php echo $headerSrc; ?>" class="header-img">
 
-    <!-- Document Control Table -->
-    <table class="control-table">
-        <tr>
-            <td width="60%">REC Form No.</td>
-            <td class="center-text"><strong>25</strong></td>
-        </tr>
-        <tr>
-            <td>Version No.</td>
-            <td class="center-text"><strong>01</strong></td>
-        </tr>
-        <tr>
-            <td>Date of Effectivity</td>
-            <td class="center-text">June 15, 2022</td>
-        </tr>
-    </table>
-
     <div class="content">
-        <div class="center-text" style="font-size: 15pt; font-style: italic; color: #777; margin-bottom: 10px;">
-            Research Ethics Committee
-        </div>
-
-        <div class="center-text bold underline" style="font-size: 13pt; margin-bottom: 40px;">
+        <div class="center-text bold underline" style="font-size: 13pt; margin-top: 5px; margin-bottom: 20px; letter-spacing: 0.5px;">
             ETHICAL CLEARANCE
         </div>
 
         <div class="letter-date">
-            <?php echo date('F d, Y'); ?>
+            <?php 
+            $certDate = ($decision && $decision['decision_date']) ? $decision['decision_date'] : $p['created_at'];
+            echo date('F d, Y', strtotime($certDate)); 
+            ?>
         </div>
 
         <div class="proponent-block">
-            <div class="bold"><?php echo strtoupper($p['project_leader']); ?></div>
+            <div class="proponent-name"><?php echo htmlspecialchars($p['project_leader']); ?></div>
             <div>Researcher</div>
             <div>Davao del Norte State College</div>
             <div>New Visayas, Panabo City, Davao del Norte</div>
         </div>
 
         <div class="re-block">
-            <span class="bold">RE:</span> “<?php echo htmlspecialchars($p['title']); ?>”<br>
-            <span class="bold">REC code: <?php echo htmlspecialchars($p['rec_code']); ?></span>
+            <strong>RE:</strong> “<?php echo htmlspecialchars($p['title']); ?>”<br>
+            <strong>REC code:</strong> <?php echo htmlspecialchars($p['rec_code']); ?>
         </div>
 
-        <div class="bold" style="margin-bottom: 25px;">
-            Subject: Ethical Clearance
+        <div style="margin-bottom: 12px;">
+            <strong>Subject:</strong> Ethical Clearance
         </div>
 
-        <div style="margin-bottom: 20px;">
-            Dear <span class="bold">Mr./Ms. <?php 
-                $parts = explode(',', $p['project_leader']);
-                echo trim($parts[0]);
-            ?></span>:
+        <div class="salutation">
+            Dear <em>Mr./Ms. <?php echo htmlspecialchars($lastName); ?></em>:
         </div>
 
-        <p>This is to acknowledge the submitted documents with dates.</p>
+        <div class="body-paragraph">
+            This is to acknowledge the submitted documents with dates.
+        </div>
+
         <ul>
             <li>Study Protocol: “<?php echo htmlspecialchars($p['title']); ?>”</li>
             <li>Curriculum Vitae of the researcher</li>
@@ -140,31 +167,25 @@ $footerSrc = BASE_URL . 'assets/images/footer.png';
             <li><?php echo date('F d, Y', strtotime($p['created_at'])); ?></li>
         </ul>
 
-        <p style="text-align: justify; margin-top: 20px;">
-            The DNSC REC conducted an <strong><?php 
-                $rtMap = ['pending' => 'Pending Review Type', 'exempt' => 'Exemption Determination', 'expedited' => 'Expedited Review', 'full_board' => 'Full Board Review'];
-                echo $rtMap[$p['review_type']] ?? 'Ethical Review'; 
-            ?></strong> of the Proposal on <strong><?php 
+        <p class="body-paragraph">
+            The DNSC REC conducted <?php echo $article; ?> <strong><?php echo htmlspecialchars($reviewTypeStr); ?></strong> of the Proposal on <strong><?php 
                 $reviewDate = ($decision && $decision['meeting_date']) ? $decision['meeting_date'] : (($p['submission_confirmed_at'] && $p['submission_confirmed_at'] !== '0000-00-00 00:00:00') ? $p['submission_confirmed_at'] : $p['created_at']);
                 echo date('F d, Y', strtotime($reviewDate));
             ?></strong>.
         </p>
 
-        <p style="text-align: justify;">
-            The proposal is recommended for approval. This certificate is valid for **one (1) year** until <strong><?php echo date('F d, Y', strtotime($reviewDate . ' +365 days')); ?></strong>. Another certification will be issued upon the completion of your study.
+        <p class="body-paragraph">
+            The proposal is recommended for approval. Another certification will be issued upon the completion of your study.
         </p>
 
-        <p style="text-align: justify;">
-            Notwithstanding the foregoing, the proponent is hereby required to submit the Final Report within three (3) weeks after the completion of the study.
-        </p>
-
-        <div style="margin-top: 40px;">
-            Very truly yours,
-        </div>
-
-        <div class="sig-block">
-            <div class="bold" style="font-size: 12pt;"><?php echo strtoupper($chair_name); ?></div>
-            <div>DNSC-REC Chair</div>
+        <div class="sig-block" style="margin-top: 15px;">
+            <div style="margin-bottom: 5px;">Very truly yours,</div>
+            
+            <?php echo renderSignature($decision_chair_sig, '150px'); ?>
+            <div style="margin-top: 25px;">
+                <div class="sig-name"><?php echo htmlspecialchars($decision_chair); ?></div>
+                <div>DNSC-REC Chair</div>
+            </div>
         </div>
     </div>
 
@@ -174,3 +195,4 @@ $footerSrc = BASE_URL . 'assets/images/footer.png';
 
 </body>
 </html>
+

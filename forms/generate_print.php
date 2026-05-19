@@ -24,12 +24,12 @@ if (!$protocol) {
     die("Protocol not found.");
 }
 
-// Reviewers
+// Reviewers (Only fetch reviewers who have officially completed/filled up their evaluations)
 $stmtR = $pdo->prepare("
     SELECT ra.*, u.name as reviewer_name, u.email as reviewer_email, u.signature as reviewer_sig
     FROM reviewer_assignments ra
     JOIN admins u ON ra.reviewer_id = u.admin_id
-    WHERE ra.protocol_id = ?
+    WHERE ra.protocol_id = ? AND ra.status = 'completed'
     ORDER BY ra.status ASC
 ");
 $stmtR->execute([$protocol_id]);

@@ -499,6 +499,13 @@ include 'includes/header.php';
                             </a>
                         <?php endif; ?>
 
+                        <?php if (in_array($p['status'], ['approved', 'clearance_released'])): ?>
+                            <a href="forms/form25_clearance?id=<?php echo $p['protocol_id']; ?>&public=1" target="_blank"
+                                class="btn btn-success w-100 py-3 fw-bold shadow-sm rounded-pill mt-2">
+                                <i class="fas fa-certificate me-2"></i> Print Ethical Clearance (Form 25)
+                            </a>
+                        <?php endif; ?>
+
                     <?php else: ?>
                         <div
                             class="card border-0 shadow-sm p-4 text-center bg-light h-auto d-flex flex-column justify-content-center">

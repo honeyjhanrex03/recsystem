@@ -14,6 +14,12 @@ $p = $stmt->fetch();
 
 if (!$p) die("Protocol not found.");
 
+// Fetch Author details
+$stmtA = $pdo->prepare("SELECT signature FROM users WHERE email = ? LIMIT 1");
+$stmtA->execute([$p['author_email']]);
+$author_user = $stmtA->fetch();
+$author_sig = $author_user ? $author_user['signature'] : null;
+
 $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
 ?>
 <!DOCTYPE html>
@@ -21,6 +27,10 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
 <head>
     <meta charset="UTF-8">
     <title>REC FORM 15 - RESUBMISSION FORM</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="shortcut icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png?v=1.1">
     <style>
         @page { size: A4 portrait; margin: 0; }
         body { font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; line-height: 1.2; margin: 0; padding: 0; }
@@ -49,9 +59,26 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
         .sig-line { border-bottom: 2px solid black; width: 250px; display: inline-block; margin-bottom: 5px; }
         
         .footer-page-num { position: absolute; bottom: 0.5in; right: 0.5in; font-size: 10pt; }
+
+        [contenteditable="true"] {
+            outline: none;
+            background-color: rgba(254, 243, 199, 0.3);
+            border-radius: 4px;
+            transition: all 0.2s;
+            padding: 2px;
+        }
+        [contenteditable="true"]:focus {
+            background-color: rgba(254, 243, 199, 0.85);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+        }
         
         @media print {
             .no-print { display: none !important; }
+            [contenteditable="true"] {
+                background-color: transparent !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
             .page-container { margin: 0 !important; width: 100% !important; padding: 0.5in !important; }
         }
     </style>
@@ -168,23 +195,32 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
                 $res = $responses[$i] ?? null;
             ?>
             <tr style="height: 100px;">
-                <td><?php echo nl2br(htmlspecialchars($res['rec_recommendation'] ?? '')); ?></td>
-                <td><?php echo nl2br(htmlspecialchars($res['author_response'] ?? '')); ?></td>
-                <td style="text-align: center;"><?php echo htmlspecialchars($res['page_reference'] ?? ''); ?></td>
-                <td style="text-align: center; font-weight: bold;"><?php echo htmlspecialchars($res['rec_assessment'] ?? ''); ?></td>
+                <td contenteditable="true"><?php echo nl2br(htmlspecialchars($res['rec_recommendation'] ?? '')); ?></td>
+                <td contenteditable="true"><?php echo nl2br(htmlspecialchars($res['author_response'] ?? '')); ?></td>
+                <td contenteditable="true" style="text-align: center;"><?php echo htmlspecialchars($res['page_reference'] ?? ''); ?></td>
+                <td contenteditable="true" style="text-align: center; font-weight: bold;"><?php echo htmlspecialchars($res['rec_assessment'] ?? ''); ?></td>
             </tr>
             <?php endfor; ?>
         </tbody>
     </table>
 
     <!-- SIGNATURE SECTION -->
-    <div class="sig-section">
-        <p style="margin-top: 30px;">
-            <strong>Signature of Researcher:</strong> <span class="sig-line" style="width: 250px;"></span>
-        </p>
-        <p>
-            <strong>Date:</strong> <span class="sig-line" style="width: 150px;"></span>
-        </p>
+    <div class="sig-section" style="margin-top: 30px; display: flex; align-items: flex-end; gap: 40px;">
+        <div>
+            <strong>Signature of Researcher:</strong>
+            <div style="position: relative; width: 250px; border-bottom: 2px solid black; text-align: center; margin-top: 65px; padding-bottom: 3px;">
+                <?php if ($author_sig): ?>
+                    <img src="<?php echo BASE_URL . 'uploads/signatures/' . $author_sig; ?>" style="max-height: 75px; max-width: 180px; display: block; margin: 0 auto; position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); pointer-events: none;">
+                <?php endif; ?>
+                <span style="font-weight: bold; text-transform: uppercase; font-size: 9pt;"><?php echo htmlspecialchars($p['project_leader']); ?></span>
+            </div>
+        </div>
+        <div>
+            <strong>Date:</strong>
+            <div style="width: 150px; border-bottom: 2px solid black; text-align: center; margin-top: 10px; padding-bottom: 3px; font-weight: bold; font-size: 9.5pt;">
+                <?php echo date('F d, Y', strtotime($p['created_at'])); ?>
+            </div>
+        </div>
     </div>
 
     <div class="footer-page-num">139</div>

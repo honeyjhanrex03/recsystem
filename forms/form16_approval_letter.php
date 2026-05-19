@@ -15,18 +15,30 @@ $protocol = $stmt->fetch();
 if (!$protocol) die("Protocol not found.");
 
 // Fetch Decision Date and Chair
-$stmtD = $pdo->prepare("SELECT fd.*, u.name as chair_name FROM final_decisions fd LEFT JOIN admins u ON fd.chair_id = u.admin_id WHERE fd.protocol_id = ? ORDER BY fd.decision_date DESC LIMIT 1");
+$stmtD = $pdo->prepare("SELECT fd.*, u.name as chair_name, u.signature as chair_sig FROM final_decisions fd LEFT JOIN admins u ON fd.chair_id = u.admin_id WHERE fd.protocol_id = ? ORDER BY fd.decision_date DESC LIMIT 1");
 $stmtD->execute([$protocol_id]);
 $decision = $stmtD->fetch();
 
 // REC Chair info
-$stmtC = $pdo->prepare("SELECT name FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
+$stmtC = $pdo->prepare("SELECT name, signature FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
 $stmtC->execute();
 $chair = $stmtC->fetch();
 $chair_name = $chair ? $chair['name'] : "DNSC REC CHAIRPERSON";
+$chair_sig = $chair ? $chair['signature'] : null;
 
 // Use the chair who actually approved it, fallback to current
 $decision_chair = ($decision && !empty($decision['chair_name'])) ? $decision['chair_name'] : $chair_name;
+$decision_chair_sig = ($decision && !empty($decision['chair_sig'])) ? $decision['chair_sig'] : $chair_sig;
+
+// Fetch Author (Lead Proponent) details from users table
+$stmtA = $pdo->prepare("SELECT signature FROM users WHERE email = ? LIMIT 1");
+$stmtA->execute([$protocol['author_email']]);
+$author_user = $stmtA->fetch();
+$author_name = $protocol['project_leader'];
+$author_sig = $author_user ? $author_user['signature'] : null;
+
+// Determine dynamic date received
+$received_date = ($decision && !empty($decision['decision_date'])) ? date('F d, Y', strtotime($decision['decision_date'])) : date('F d, Y');
 
 
 $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
@@ -36,6 +48,10 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
 <head>
     <meta charset="UTF-8">
     <title>REC FORM 16 - APPROVAL LETTER TO THE STUDY PROTOCOL</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="shortcut icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png?v=1.1">
     <style>
         @page { size: A4 portrait; margin: 0; }
         body { font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; line-height: 1.2; margin: 0; padding: 0; background-color: #f0f2f5; }
@@ -145,23 +161,40 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
 
         <table style="width:100%; border-collapse:collapse; margin-bottom:20pt; font-size:10pt; text-align:center;">
             <tr>
-                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:33%;">DNSC REC CHAIR</td>
-                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:33%;">SIGNATURE</td>
-                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:33%;">DATE</td>
+                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:33%; vertical-align:middle;">DNSC REC CHAIR</td>
+                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:33%; vertical-align:middle;">SIGNATURE</td>
+                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:33%; vertical-align:middle;">DATE</td>
             </tr>
             <tr>
-                <td style="border:1px solid #000; padding:20px 8px;"><strong><?php echo strtoupper($decision_chair); ?></strong></td>
-                <td style="border:1px solid #000; padding:20px 8px;"></td>
-                <td style="border:1px solid #000; padding:20px 8px;"></td>
+                <td style="border:1px solid #000; padding:15px 8px; vertical-align:middle;"><strong><?php echo strtoupper($decision_chair); ?></strong></td>
+                <td style="border:1px solid #000; padding:5px 8px; vertical-align:middle; text-align:center;">
+                    <?php if ($decision_chair_sig): ?>
+                        <img src="<?php echo BASE_URL . 'uploads/signatures/' . $decision_chair_sig; ?>" style="max-height: 55px; max-width: 140px; display: block; margin: 0 auto; pointer-events:none;">
+                    <?php else: ?>
+                        &nbsp;
+                    <?php endif; ?>
+                </td>
+                <td style="border:1px solid #000; padding:15px 8px; vertical-align:middle;">
+                    <strong><?php echo date('F d, Y', strtotime($decision['decision_date'] ?? date('Y-m-d'))); ?></strong>
+                </td>
             </tr>
         </table>
 
-        <table style="width:100%; border-collapse:collapse; font-size:10pt;">
+        <table style="width:100%; border-collapse:collapse; font-size:10pt; text-align:center;">
             <tr>
-                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:35%;">Received by (Signature over printed name)</td>
-                <td style="border:1px solid #000; padding:8px; width:30%;"></td>
-                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:15%;">Date Received</td>
-                <td style="border:1px solid #000; padding:8px; width:20%;"></td>
+                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:35%; text-align:left; vertical-align:middle;">Received by (Signature over printed name)</td>
+                <td style="border:1px solid #000; padding:5px 8px; width:30%; vertical-align:middle; text-align:center;">
+                    <?php if ($author_sig): ?>
+                        <img src="<?php echo BASE_URL . 'uploads/signatures/' . $author_sig; ?>" style="max-height: 40px; max-width: 130px; display: block; margin: 0 auto; pointer-events:none;">
+                    <?php endif; ?>
+                    <div style="border-top:1px solid #000; margin-top:3px; padding-top:2px; font-weight:bold; font-size:9.5pt;">
+                        <?php echo strtoupper($author_name); ?>
+                    </div>
+                </td>
+                <td style="border:1px solid #000; padding:8px; background:#f0f0f0; font-weight:bold; width:15%; text-align:left; vertical-align:middle;">Date Received</td>
+                <td style="border:1px solid #000; padding:15px 8px; width:20%; vertical-align:middle;">
+                    <strong><?php echo $received_date; ?></strong>
+                </td>
             </tr>
         </table>
     </div>

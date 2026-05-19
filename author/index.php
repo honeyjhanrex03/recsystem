@@ -270,14 +270,37 @@ include '../includes/header.php';
                                                     <a href="../shared_view?id=<?php echo $p['protocol_id']; ?>" class="btn btn-light btn-sm rounded-pill px-3 border-0 transform-hover" style="background:#f1f5f9;">
                                                          <i class="fas fa-folder-open me-1"></i> View Details
                                                     </a>
-                                                    <?php if ($s === 'approved' || $s === 'clearance_released'): ?>
+                                                    <?php if ($s === 'approved' || $s === 'clearance_released'): 
+                                                        $stmt18 = $pdo->prepare("SELECT COUNT(*) FROM form18a_responses WHERE protocol_id = ?");
+                                                        $stmt18->execute([$p['protocol_id']]);
+                                                        $has_f18a = ($stmt18->fetchColumn() > 0);
+
+                                                        $stmt19 = $pdo->prepare("SELECT COUNT(*) FROM form19_responses WHERE protocol_id = ?");
+                                                        $stmt19->execute([$p['protocol_id']]);
+                                                        $has_f19 = ($stmt19->fetchColumn() > 0);
+                                                    ?>
                                                          <div class="dropdown">
                                                              <button class="btn btn-navy btn-sm rounded-pill px-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                                                  <i class="fas fa-file-export me-1"></i> Post-Approval
                                                              </button>
-                                                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3">
-                                                                 <li><a class="dropdown-item small" href="../forms/form18a_progress_report?id=<?php echo $p['protocol_id']; ?>" target="_blank"><i class="fas fa-chart-line me-2 text-primary"></i> Progress Report (F18a)</a></li>
-                                                                 <li><a class="dropdown-item small" href="../forms/form19_final_report?id=<?php echo $p['protocol_id']; ?>" target="_blank"><i class="fas fa-check-double me-2 text-success"></i> Final Report (F19)</a></li>
+                                                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2" style="min-width: 240px;">
+                                                                 <div class="dropdown-header text-navy fw-bold x-small text-uppercase ps-2 mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Progress Monitoring</div>
+                                                                 <?php if ($has_f18a): ?>
+                                                                     <li><a class="dropdown-item small rounded-2 py-2" href="submit_report?id=<?php echo $p['protocol_id']; ?>&type=progress"><i class="fas fa-edit me-2 text-primary"></i> Edit Progress Report</a></li>
+                                                                     <li><a class="dropdown-item small rounded-2 py-2" href="../forms/form18a_progress_report?id=<?php echo $p['protocol_id']; ?>" target="_blank"><i class="fas fa-print me-2 text-secondary"></i> Print Progress Report (F18a)</a></li>
+                                                                 <?php else: ?>
+                                                                     <li><a class="dropdown-item small rounded-2 py-2 fw-bold text-primary" href="submit_report?id=<?php echo $p['protocol_id']; ?>&type=progress"><i class="fas fa-plus-circle me-2"></i> Submit Progress Report</a></li>
+                                                                 <?php endif; ?>
+                                                                 
+                                                                 <hr class="dropdown-divider my-2">
+                                                                 
+                                                                 <div class="dropdown-header text-navy fw-bold x-small text-uppercase ps-2 mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Final Completion</div>
+                                                                 <?php if ($has_f19): ?>
+                                                                     <li><a class="dropdown-item small rounded-2 py-2" href="submit_report?id=<?php echo $p['protocol_id']; ?>&type=final"><i class="fas fa-edit me-2 text-success"></i> Edit Final Report</a></li>
+                                                                     <li><a class="dropdown-item small rounded-2 py-2" href="../forms/form19_final_report?id=<?php echo $p['protocol_id']; ?>" target="_blank"><i class="fas fa-print me-2 text-secondary"></i> Print Final Report (F19)</a></li>
+                                                                 <?php else: ?>
+                                                                     <li><a class="dropdown-item small rounded-2 py-2 fw-bold text-success" href="submit_report?id=<?php echo $p['protocol_id']; ?>&type=final"><i class="fas fa-plus-circle me-2"></i> Submit Final Report</a></li>
+                                                                 <?php endif; ?>
                                                              </ul>
                                                          </div>
                                                      <?php endif; ?>

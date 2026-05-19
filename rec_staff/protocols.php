@@ -223,15 +223,15 @@ $protocols = $stmt->fetchAll();
                                                      <?php endif; ?>
 
                                                     <!-- Special: Release Clearance if Approved -->
-                                                     <?php if ($_SESSION['role'] == 'rec_staff' && $protocol['status'] == 'approved'): ?>
-                                                         <a href="update_status?id=<?php echo $protocol['protocol_id']; ?>&action=release_clearance"
-                                                             class="btn btn-sm text-white rounded-pill px-3 shadow-sm fw-bold" 
-                                                             style="background: #10b981; border: none; font-size: 0.8rem;"
-                                                             onclick="return confirm('Officially release the Ethical Clearance for this protocol?')"
-                                                             title="Release Official REC Form 25">
-                                                             <i class="fas fa-paper-plane me-1"></i> Release
-                                                         </a>
-                                                     <?php endif; ?>
+                                                      <?php if ($_SESSION['role'] == 'rec_staff' && $protocol['status'] == 'approved'): ?>
+                                                          <a href="update_status?id=<?php echo $protocol['protocol_id']; ?>&action=release_clearance"
+                                                              class="btn btn-sm text-white rounded-pill px-3 shadow-sm fw-bold" 
+                                                              style="background: #10b981; border: none; font-size: 0.8rem;"
+                                                              onclick="event.preventDefault(); const url = this.href; Swal.fire({title: 'Release Ethical Clearance?', html: 'You are about to officially release the **Ethical Clearance Certificate (REC Form 25)** for this protocol.<br><br><small class=\'text-muted\'>This will complete the Clearance milestone and notify the researcher.</small>', icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', cancelButtonColor: '#64748b', confirmButtonText: '<i class=\'fas fa-paper-plane me-2\'></i> Yes, Release!', cancelButtonText: 'Cancel'}).then((result) => { if (result.isConfirmed) { window.location.href = url; } })"
+                                                              title="Release Official REC Form 25">
+                                                              <i class="fas fa-paper-plane me-1"></i> Release
+                                                          </a>
+                                                      <?php endif; ?>
 
                                                      <!-- Special: Generate REC Code if confirmed and staff -->
                                                     <?php if ($_SESSION['role'] == 'rec_staff' && $protocol['status'] == 'confirmed' && (empty($protocol['rec_code']) || strpos($protocol['rec_code'], 'PENDING') !== false)): ?>

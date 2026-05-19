@@ -6,6 +6,8 @@ vendor/
 # User Uploads (Sensitive Data)
 uploads/protocols/*
 !uploads/protocols/.gitkeep
+uploads/signatures/*
+!uploads/signatures/.gitkeep
 
 # Operating System Files
 .DS_Store

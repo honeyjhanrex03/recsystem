@@ -26,6 +26,10 @@ function renderSignature(?string $sig_filename, string $width = '150px'): string
 <head>
     <meta charset="UTF-8">
     <title>REC FORM 13 - CHECKLIST OF SUBMITTED DOCUMENTS</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="shortcut icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png?v=1.1">
     <style>
         @page { size: A4 portrait; margin: 0; }
         body { font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; line-height: 1.2; margin: 0; padding: 0; background-color: #f0f2f5; }

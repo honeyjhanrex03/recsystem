@@ -7,6 +7,53 @@
 $status = (isset($protocol) && isset($protocol['status'])) ? $protocol['status'] : 'submitted';
 $protocol_id = (isset($protocol) && isset($protocol['protocol_id'])) ? $protocol['protocol_id'] : null;
 
+// Handle Acknowledge Receipt post action
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'acknowledge_clearance') {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $sess_user_id = $_SESSION['user_id'] ?? null;
+    $sess_user_role = $_SESSION['role'] ?? null;
+    
+    if ($sess_user_role === 'author' && !empty($protocol_id)) {
+        // Fetch Lead Researcher Name
+        $stmtP = $pdo->prepare("SELECT project_leader FROM protocols WHERE protocol_id = ?");
+        $stmtP->execute([$protocol_id]);
+        $proto_leader = $stmtP->fetchColumn() ?: 'Researcher';
+        
+        $actionMsg = "Lead Researcher " . $proto_leader . " officially acknowledged receipt of Ethical Clearance (Form 25) and Approval Letter (Form 16) and confirmed all signatures.";
+        
+        $stmtL = $pdo->prepare("INSERT INTO audit_logs (user_id, protocol_id, action, timestamp) VALUES (?, ?, ?, NOW())");
+        $stmtL->execute([$sess_user_id, $protocol_id, $actionMsg]);
+        
+        // Auto-update status to 'clearance_released' to mark the process complete
+        $stmtU = $pdo->prepare("UPDATE protocols SET status = 'clearance_released' WHERE protocol_id = ?");
+        $stmtU->execute([$protocol_id]);
+        
+        // Refresh page to apply changes
+        echo "<script>window.location.href = window.location.href;</script>";
+        exit();
+    }
+}
+
+// Check if Acknowledged
+$isAcknowledged = false;
+$has18 = false;
+$has19 = false;
+if (!empty($protocol_id)) {
+    $stmtAck = $pdo->prepare("SELECT COUNT(*) FROM audit_logs WHERE protocol_id = ? AND action LIKE '%officially acknowledged receipt of Ethical Clearance%'");
+    $stmtAck->execute([$protocol_id]);
+    $isAcknowledged = ($stmtAck->fetchColumn() > 0);
+
+    $stmtChk18 = $pdo->prepare("SELECT COUNT(*) FROM form18a_responses WHERE protocol_id = ?");
+    $stmtChk18->execute([$protocol_id]);
+    $has18 = ($stmtChk18->fetchColumn() > 0);
+
+    $stmtChk19 = $pdo->prepare("SELECT COUNT(*) FROM form19_responses WHERE protocol_id = ?");
+    $stmtChk19->execute([$protocol_id]);
+    $has19 = ($stmtChk19->fetchColumn() > 0);
+}
+
 // Reviewer Completion Logic
 $totalReviewers = 0;
 $doneReviewers = 0;
@@ -22,67 +69,123 @@ if (isset($protocol_id)) {
     }
 }
 
-// 8-Step Lifecycle Definition (Section III: Review and Approval Workflow)
-$steps = [
-    [
-        'label' => 'Submission',
-        'sublabel' => 'Committee Protocol Dossier',
-        'icon' => 'fa-file-import',
-        'done' => ($status !== 'submitted'),
-        'active' => ($status === 'submitted'),
-    ],
-    [
-        'label' => 'Initial Check',
-        'sublabel' => 'REC Staff Screening',
-        'icon' => 'fa-clipboard-check',
-        'done' => !in_array($status, ['submitted', 'staff_review']),
-        'active' => ($status === 'staff_review'),
-    ],
-    [
-        'label' => 'Initial Review',
-        'sublabel' => 'REC Chair Assessment',
-        'icon' => 'fa-user-tie',
-        'done' => !in_array($status, ['submitted', 'staff_review', 'initial_review']),
-        'active' => ($status === 'initial_review'),
-    ],
-    [
-        'label' => 'Assignment',
-        'sublabel' => 'Reviewer Panel Selection',
-        'icon' => 'fa-users-cog',
-        'done' => !in_array($status, ['submitted', 'staff_review', 'initial_review', 'confirmed']),
-        'active' => ($status === 'confirmed'),
-    ],
-    [
-        'label' => 'Peer Review',
-        'sublabel' => $totalReviewers > 0 ? "$doneReviewers / $totalReviewers Evaluations Done" : 'Technical Evaluation',
-        'icon' => 'fa-magnifying-glass-chart',
-        'done' => in_array($status, ['under_review', 'needs_revision', 'revised', 'approved', 'clearance_released']),
-        'active' => in_array($status, ['assigned']),
-    ],
-    [
-        'label' => 'Revision Cycle',
-        'sublabel' => ($status === 'revised' || $status === 'approved') ? 'Revised Dossier Received' : 'Mandatory Revision Process',
-        'icon' => 'fa-rotate-right',
-        'done' => in_array($status, ['revised', 'approved', 'clearance_released']),
-        'active' => in_array($status, ['under_review', 'needs_revision']),
-        // Only skip for Exempt/Pending if they haven't needed a revision
-        'skip' => in_array($protocol['review_type'] ?? '', ['exempt', 'pending']) && !in_array($status, ['needs_revision', 'revised', 'approved']),
-    ],
-    [
-        'label' => 'Final Decision',
-        'sublabel' => 'Board Final Assessment',
-        'icon' => 'fa-gavel',
-        'done' => in_array($status, ['approved', 'clearance_released']),
-        'active' => in_array($status, ['revised', 'for_decision', 'completed']) && !in_array($status, ['needs_revision', 'under_review']),
-    ],
-    [
-        'label' => 'Clearance',
-        'sublabel' => 'Ethical Clearance & ID',
-        'icon' => 'fa-certificate',
-        'done' => ($status === 'clearance_released'),
-        'active' => ($status === 'approved'),
-    ],
-];
+// Dynamic Review-Type Lifecycle Definition (Section III: Review and Approval Workflow)
+$review_type = isset($protocol['review_type']) ? $protocol['review_type'] : 'pending';
+
+if ($review_type === 'exempt') {
+    // Exempt Review: Simple direct track (No reviewer assignment, no peer evaluation, no progress reports)
+    $steps = [
+        [
+            'label' => 'Submission',
+            'sublabel' => 'Committee Protocol Dossier',
+            'icon' => 'fa-file-import',
+            'done' => ($status !== 'submitted'),
+            'active' => ($status === 'submitted'),
+        ],
+        [
+            'label' => 'Initial Check',
+            'sublabel' => 'REC Staff Screening',
+            'icon' => 'fa-clipboard-check',
+            'done' => !in_array($status, ['submitted', 'staff_review']),
+            'active' => ($status === 'staff_review'),
+        ],
+        [
+            'label' => 'Initial Review',
+            'sublabel' => 'REC Chair Assessment',
+            'icon' => 'fa-user-tie',
+            'done' => !in_array($status, ['submitted', 'staff_review', 'initial_review']),
+            'active' => ($status === 'initial_review'),
+        ],
+        [
+            'label' => 'Final Decision',
+            'sublabel' => 'Chair Exemption Approval',
+            'icon' => 'fa-gavel',
+            'done' => in_array($status, ['approved', 'clearance_released']),
+            'active' => in_array($status, ['revised', 'for_decision', 'completed']) && !in_array($status, ['needs_revision', 'under_review']),
+        ],
+        [
+            'label' => 'Clearance',
+            'sublabel' => 'Certificate of Exemption',
+            'icon' => 'fa-certificate',
+            'done' => in_array($status, ['approved', 'clearance_released']),
+            'active' => false,
+        ],
+    ];
+} else {
+    // Expedited & Full Board Review: Comprehensive 10-stage evaluation & post-approval monitoring pipeline
+    $steps = [
+        [
+            'label' => 'Submission',
+            'sublabel' => 'Committee Protocol Dossier',
+            'icon' => 'fa-file-import',
+            'done' => ($status !== 'submitted'),
+            'active' => ($status === 'submitted'),
+        ],
+        [
+            'label' => 'Initial Check',
+            'sublabel' => 'REC Staff Screening',
+            'icon' => 'fa-clipboard-check',
+            'done' => !in_array($status, ['submitted', 'staff_review']),
+            'active' => ($status === 'staff_review'),
+        ],
+        [
+            'label' => 'Initial Review',
+            'sublabel' => 'REC Chair Assessment',
+            'icon' => 'fa-user-tie',
+            'done' => !in_array($status, ['submitted', 'staff_review', 'initial_review']),
+            'active' => ($status === 'initial_review'),
+        ],
+        [
+            'label' => 'Assignment',
+            'sublabel' => 'Reviewer Panel Selection',
+            'icon' => 'fa-users-cog',
+            'done' => !in_array($status, ['submitted', 'staff_review', 'initial_review', 'confirmed']),
+            'active' => ($status === 'confirmed'),
+        ],
+        [
+            'label' => 'Peer Review',
+            'sublabel' => $totalReviewers > 0 ? "$doneReviewers / $totalReviewers Evaluations Done" : 'Technical Evaluation',
+            'icon' => 'fa-magnifying-glass-chart',
+            'done' => in_array($status, ['under_review', 'needs_revision', 'revised', 'approved', 'clearance_released']),
+            'active' => in_array($status, ['assigned']),
+        ],
+        [
+            'label' => 'Revision Cycle',
+            'sublabel' => ($status === 'revised' || $status === 'approved') ? 'Revised Dossier Received' : 'Mandatory Revision Process',
+            'icon' => 'fa-rotate-right',
+            'done' => in_array($status, ['revised', 'approved', 'clearance_released']),
+            'active' => in_array($status, ['under_review', 'needs_revision']),
+        ],
+        [
+            'label' => 'Final Decision',
+            'sublabel' => 'Board Final Assessment',
+            'icon' => 'fa-gavel',
+            'done' => in_array($status, ['approved', 'clearance_released']),
+            'active' => in_array($status, ['revised', 'for_decision', 'completed']) && !in_array($status, ['needs_revision', 'under_review']),
+        ],
+        [
+            'label' => 'Clearance',
+            'sublabel' => 'Ethical Clearance & ID',
+            'icon' => 'fa-certificate',
+            'done' => in_array($status, ['approved', 'clearance_released']),
+            'active' => false,
+        ],
+        [
+            'label' => 'Monitoring',
+            'sublabel' => 'Progress Report (F18a)',
+            'icon' => 'fa-chart-line',
+            'done' => $has18,
+            'active' => in_array($status, ['approved', 'clearance_released']) && !$has18,
+        ],
+        [
+            'label' => 'Completion',
+            'sublabel' => 'Final Report (F19)',
+            'icon' => 'fa-check-double',
+            'done' => $has19,
+            'active' => in_array($status, ['approved', 'clearance_released']) && $has18 && !$has19,
+        ]
+    ];
+}
 
 // Fetch Audit Timeline for the "Detailed" view
 $stmtL = $pdo->prepare("SELECT * FROM audit_logs WHERE protocol_id = ? ORDER BY timestamp DESC LIMIT 5");
@@ -134,6 +237,102 @@ $logs = $stmtL->fetchAll();
                 <?php endforeach; ?>
             </div>
         </div>
+        
+        <!-- Released Official Documents Panel for Approved/Released protocols -->
+        <?php if (in_array($status, ['approved', 'clearance_released'])): ?>
+        <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 5px solid #22c55e !important;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-success text-white rounded-3 me-3" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                        <i class="fas fa-file-shield"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-success mb-1">Official Certificates & Letters Issued</h6>
+                        <p class="text-muted small mb-0">Your protocol has officially been approved by the REC Board. You can view, download, and print your documents below.</p>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-3">
+                        <a href="<?php echo BASE_URL; ?>forms/form25_clearance.php?id=<?php echo $protocol_id; ?>&public=1" target="_blank" class="btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <i class="fas fa-award"></i> Print Clearance (F25)
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="<?php echo BASE_URL; ?>forms/form16_approval_letter.php?id=<?php echo $protocol_id; ?>&public=1" target="_blank" class="btn btn-outline-success bg-white w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <i class="fas fa-envelope-open-text"></i> Approval Letter (F16)
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex flex-column gap-2">
+                            <a href="<?php echo BASE_URL; ?>forms/form18a_progress_report.php?id=<?php echo $protocol_id; ?>&public=1" target="_blank" class="btn btn-navy text-white w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="background:#1a2b4b;">
+                                <i class="fas fa-chart-line"></i> Print Progress (F18a) <?php echo $has18 ? '✅' : '⚠️'; ?>
+                            </a>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'author'): ?>
+                                <a href="<?php echo BASE_URL; ?>author/submit_report.php?id=<?php echo $protocol_id; ?>&type=progress" class="btn btn-sm btn-outline-navy rounded-pill fw-bold" style="color:#1a2b4b; border-color:#1a2b4b;">
+                                    <i class="fas <?php echo $has18 ? 'fa-edit' : 'fa-plus'; ?> me-1"></i> <?php echo $has18 ? 'Edit Progress Data' : 'Submit Progress Data'; ?>
+                                </a>
+                            <?php else: ?>
+                                <span class="badge bg-navy text-white rounded-pill p-2 text-center" style="font-size:0.75rem;">
+                                    <?php echo $has18 ? 'Data Submitted' : 'No Data Submitted'; ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="d-flex flex-column gap-2">
+                            <a href="<?php echo BASE_URL; ?>forms/form19_final_report.php?id=<?php echo $protocol_id; ?>&public=1" target="_blank" class="btn btn-outline-navy bg-white w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="color:#1a2b4b; border-color:#1a2b4b;">
+                                <i class="fas fa-check-double"></i> Print Final (F19) <?php echo $has19 ? '✅' : '⚠️'; ?>
+                            </a>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'author'): ?>
+                                <a href="<?php echo BASE_URL; ?>author/submit_report.php?id=<?php echo $protocol_id; ?>&type=final" class="btn btn-sm btn-navy text-white rounded-pill fw-bold" style="background:#1a2b4b;">
+                                    <i class="fas <?php echo $has19 ? 'fa-edit' : 'fa-plus'; ?> me-1"></i> <?php echo $has19 ? 'Edit Final Data' : 'Submit Final Data'; ?>
+                                </a>
+                            <?php else: ?>
+                                <span class="badge bg-secondary text-white rounded-pill p-2 text-center" style="font-size:0.75rem;">
+                                    <?php echo $has19 ? 'Data Submitted' : 'No Data Submitted'; ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Digital Acknowledgment Registry -->
+                <?php if ($isAcknowledged): ?>
+                    <div class="mt-4 pt-3 border-top d-flex align-items-center gap-2 text-success small fw-bold" style="border-top-color: rgba(34, 197, 94, 0.2) !important;">
+                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.75rem;">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span>Clearance Receipt Digitally Acknowledged & Signed by Researcher in Registry</span>
+                    </div>
+                <?php else: ?>
+                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'author'): ?>
+                        <div class="mt-4 pt-3 border-top d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 bg-white p-3 rounded-4 shadow-sm" style="border: 1px solid #fed7aa !important;">
+                            <div class="d-flex align-items-center">
+                                <div class="text-warning me-3" style="font-size: 1.5rem;"><i class="fas fa-exclamation-triangle animate-bounce"></i></div>
+                                <div>
+                                    <strong class="text-navy d-block">⚠️ Action Required: Confirm & Acknowledge Receipt</strong>
+                                    <span class="text-muted small">You are required to officially confirm receipt of these documents for your registry. This action acts as your secure digital acknowledgment signature.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <form method="POST" action="" class="m-0">
+                                    <input type="hidden" name="action" value="acknowledge_clearance">
+                                    <button type="submit" class="btn btn-warning px-4 py-2.5 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2" style="background: #f59e0b; color: #fff; border: none; font-size: 0.9rem;">
+                                        <i class="fas fa-signature"></i> Confirm Receipt & Sign
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div class="mt-4 pt-3 border-top d-flex align-items-center gap-2 text-warning small fw-bold" style="border-top-color: rgba(245, 158, 11, 0.2) !important;">
+                            <div class="spinner-border spinner-border-sm text-warning" role="status" style="width: 16px; height: 16px;"></div>
+                            <span>Awaiting Researcher's Digital Receipt Acknowledgment & Signature</span>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Activity History -->
         <?php if (!empty($logs)): ?>

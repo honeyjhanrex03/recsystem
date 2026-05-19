@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 16, 2026 at 06:57 AM
+-- Generation Time: May 19, 2026 at 10:49 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -106,7 +106,29 @@ INSERT INTO `audit_logs` (`log_id`, `user_id`, `protocol_id`, `action`, `timesta
 (30, 22, NULL, 'Successful Login', '2026-05-16 02:39:41'),
 (31, 19, NULL, 'Successful Login', '2026-05-16 02:39:58'),
 (32, 22, NULL, 'Successful Login', '2026-05-16 02:40:29'),
-(33, 19, NULL, 'Successful Login', '2026-05-16 02:41:40');
+(33, 19, NULL, 'Successful Login', '2026-05-16 02:41:40'),
+(34, 22, NULL, 'Successful Login', '2026-05-19 07:26:16'),
+(35, 3, NULL, 'Successful Login', '2026-05-19 07:50:25'),
+(36, 3, 1, 'REC REC Staff officially released the Ethical Clearance (Form 25).', '2026-05-19 07:51:49'),
+(37, 22, NULL, 'Successful Login', '2026-05-19 07:56:09'),
+(38, 3, NULL, 'Successful Login', '2026-05-19 07:57:06'),
+(39, 22, 1, 'Lead Researcher Dela Pena, Jhanrex Philip, G officially acknowledged receipt of Ethical Clearance (Form 25) and Approval Letter (Form 16) and confirmed all signatures.', '2026-05-19 08:14:52'),
+(40, 22, 1, 'Lead Researcher Dela Pena, Jhanrex Philip, G officially acknowledged receipt of Ethical Clearance (Form 25) and Approval Letter (Form 16) and confirmed all signatures.', '2026-05-19 08:15:05'),
+(41, 22, NULL, 'Updated personal profile', '2026-05-19 08:18:04'),
+(42, 22, 1, 'Lead Researcher Dela Pena, Jhanrex Philip, G officially submitted the online Progress Report (REC Form 18a) to the database.', '2026-05-19 08:19:49'),
+(43, 22, 1, 'Lead Researcher Dela Pena, Jhanrex Philip, G officially submitted the online Final Report (REC Form 19) to the database.', '2026-05-19 08:20:14'),
+(44, 22, 1, 'Lead Researcher Dela Pena, Jhanrex Philip, G officially submitted the online Progress Report (REC Form 18a) to the database.', '2026-05-19 08:21:09'),
+(45, 22, NULL, 'Updated personal profile', '2026-05-19 08:26:15'),
+(46, 22, NULL, 'Updated personal profile', '2026-05-19 08:26:20'),
+(47, 22, NULL, 'Updated personal profile', '2026-05-19 08:26:59'),
+(48, 22, NULL, 'Updated personal profile', '2026-05-19 08:27:09'),
+(49, 22, NULL, 'Updated personal profile', '2026-05-19 08:27:37'),
+(50, 22, NULL, 'Updated personal profile', '2026-05-19 08:27:43'),
+(51, 22, NULL, 'Updated personal profile', '2026-05-19 08:28:02'),
+(52, 22, NULL, 'Updated personal profile', '2026-05-19 08:28:32'),
+(53, 22, NULL, 'Updated personal profile', '2026-05-19 08:28:55'),
+(54, 22, NULL, 'Successful Login', '2026-05-19 08:41:11'),
+(55, 22, NULL, 'Successful Login', '2026-05-19 08:43:04');
 
 -- --------------------------------------------------------
 
@@ -308,6 +330,69 @@ INSERT INTO `form15_responses` (`id`, `protocol_id`, `author_id`, `rec_recommend
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `form18a_responses`
+--
+
+CREATE TABLE `form18a_responses` (
+  `id` int(11) NOT NULL,
+  `protocol_id` int(11) NOT NULL,
+  `author_id` int(11) NOT NULL,
+  `ethical_clearance_period` varchar(255) DEFAULT NULL,
+  `start_date` varchar(100) DEFAULT NULL,
+  `expected_end_date` varchar(100) DEFAULT NULL,
+  `enrolled_participants` varchar(100) DEFAULT NULL,
+  `required_participants` varchar(100) DEFAULT NULL,
+  `withdrawn_participants` varchar(100) DEFAULT NULL,
+  `withdrawal_reason` text DEFAULT NULL,
+  `deviations` text DEFAULT NULL,
+  `new_information` text DEFAULT NULL,
+  `issues_encountered` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `form18a_responses`
+--
+
+INSERT INTO `form18a_responses` (`id`, `protocol_id`, `author_id`, `ethical_clearance_period`, `start_date`, `expected_end_date`, `enrolled_participants`, `required_participants`, `withdrawn_participants`, `withdrawal_reason`, `deviations`, `new_information`, `issues_encountered`, `created_at`) VALUES
+(1, 1, 22, 'asdcasdas', 'dasdas', 'dsadsadas', 'dasdas', 'dasdas', 'dsadsad', 'asd', 'asdasd', 'asdasd', 'asdasd', '2026-05-19 08:19:49');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `form19_responses`
+--
+
+CREATE TABLE `form19_responses` (
+  `id` int(11) NOT NULL,
+  `protocol_id` int(11) NOT NULL,
+  `author_id` int(11) NOT NULL,
+  `ethical_clearance_start` varchar(100) DEFAULT NULL,
+  `ethical_clearance_end` varchar(100) DEFAULT NULL,
+  `start_date` varchar(100) DEFAULT NULL,
+  `end_date` varchar(100) DEFAULT NULL,
+  `enrolled_participants` varchar(100) DEFAULT NULL,
+  `required_participants` varchar(100) DEFAULT NULL,
+  `withdrawn_participants` varchar(100) DEFAULT NULL,
+  `withdrawal_reason` text DEFAULT NULL,
+  `deviations` text DEFAULT NULL,
+  `issues_encountered` text DEFAULT NULL,
+  `summary_findings` text DEFAULT NULL,
+  `conclusions` text DEFAULT NULL,
+  `dissemination_actions` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `form19_responses`
+--
+
+INSERT INTO `form19_responses` (`id`, `protocol_id`, `author_id`, `ethical_clearance_start`, `ethical_clearance_end`, `start_date`, `end_date`, `enrolled_participants`, `required_participants`, `withdrawn_participants`, `withdrawal_reason`, `deviations`, `issues_encountered`, `summary_findings`, `conclusions`, `dissemination_actions`, `created_at`) VALUES
+(1, 1, 22, 'asdasd', 'asdasd', 'asdasd', 'asdasdasd', 'asdasd', 'asdas', 'dasdas', 'dasdas', 'dasdasd', 'asdasda', 'sdasda', 'sdasdasd', 'asdasd', '2026-05-19 08:20:14');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `member_files`
 --
 
@@ -362,7 +447,8 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `user_type`, `title`,
 (18, 19, 'admin', 'Review Submitted', 'Reviewer Mark Van Buladaco has submitted an evaluation for protocol: \"GWAPOO KO TESTG\".', 'rec_chair/decision.php?id=1', 1, '2026-04-29 04:25:11'),
 (19, 22, 'author', 'Revision Required (Fast-Track)', 'All board reviews for \"GWAPOO KO TESTG\" are complete. Fast-track triggered.', 'shared_view?id=1', 1, '2026-04-29 06:49:27'),
 (20, 22, 'author', 'Final Decision Rendered', 'The REC Board has rendered a final decision on your protocol: \"GWAPOO KO TESTG\". Decision: APPROVED', 'shared_view?id=1', 1, '2026-04-29 08:58:27'),
-(21, 3, 'admin', 'Decision Rendered', 'The REC Chair has finalized the decision for protocol: \"GWAPOO KO TESTG\". Result: APPROVED', 'rec_staff/update_status.php?id=1', 0, '2026-04-29 08:58:27');
+(21, 3, 'admin', 'Decision Rendered', 'The REC Chair has finalized the decision for protocol: \"GWAPOO KO TESTG\". Result: APPROVED', 'rec_staff/update_status.php?id=1', 0, '2026-04-29 08:58:27'),
+(22, 22, 'author', 'Ethical Clearance Issued', 'Congratulations! The Ethical Clearance for your protocol \"GWAPOO KO TESTG\" has been officially released.', 'shared_view?id=1', 0, '2026-05-19 07:51:49');
 
 -- --------------------------------------------------------
 
@@ -412,7 +498,7 @@ CREATE TABLE `protocols` (
 --
 
 INSERT INTO `protocols` (`protocol_id`, `rec_code`, `tracking_code`, `sequence_number`, `protocol_type`, `author_initials`, `submission_confirmed_at`, `title`, `project_leader`, `author_email`, `institution`, `review_type`, `status`, `recommendations`, `final_notified`, `created_by`, `is_secretary_assigned`, `created_at`, `form13_status`, `forwarded_to_chair_at`, `protocol_deadline`) VALUES
-(1, '2026-001-INT.-JPD', NULL, 1, 'INT', 'JPD', NULL, 'GWAPOO KO TESTG', 'Dela Pena, Jhanrex Philip, G', 'delapena.jhanrexphilip@dnsc.edu.ph', 'Davao Del Norte State College', 'full_board', 'approved', 'congrats', 0, 22, 0, '2026-04-29 03:46:04', 'completed', NULL, NULL);
+(1, '2026-001-INT.-JPD', NULL, 1, 'INT', 'JPD', NULL, 'GWAPOO KO TESTG', 'Dela Pena, Jhanrex Philip, G', 'delapena.jhanrexphilip@dnsc.edu.ph', 'Davao Del Norte State College', 'full_board', 'clearance_released', 'congrats', 0, 22, 0, '2026-04-29 03:46:04', 'completed', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -532,7 +618,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `last_name`, `first_name`, `middle_initial`, `email`, `password`, `status`, `created_at`, `signature`) VALUES
-(22, 'Dela Pena', 'Jhanrex Philip', 'G', 'delapena.jhanrexphilip@dnsc.edu.ph', '$2y$10$87gdxZKBz3gJWoN5UZxH2OOciGjPtKa5nb49UO/2rrpbyPKRuZFs2', 'active', '2026-03-25 05:00:10', NULL);
+(22, 'Dela Pena', 'Jhanrex Philip', 'G.', 'delapena.jhanrexphilip@dnsc.edu.ph', '$2y$10$87gdxZKBz3gJWoN5UZxH2OOciGjPtKa5nb49UO/2rrpbyPKRuZFs2', 'active', '2026-03-25 05:00:10', 'sig_1779179219_6a0c1ed3de2c2.png');
 
 --
 -- Indexes for dumped tables
@@ -596,6 +682,22 @@ ALTER TABLE `form13_answers`
 -- Indexes for table `form15_responses`
 --
 ALTER TABLE `form15_responses`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `protocol_id` (`protocol_id`),
+  ADD KEY `author_id` (`author_id`);
+
+--
+-- Indexes for table `form18a_responses`
+--
+ALTER TABLE `form18a_responses`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `protocol_id` (`protocol_id`),
+  ADD KEY `author_id` (`author_id`);
+
+--
+-- Indexes for table `form19_responses`
+--
+ALTER TABLE `form19_responses`
   ADD PRIMARY KEY (`id`),
   ADD KEY `protocol_id` (`protocol_id`),
   ADD KEY `author_id` (`author_id`);
@@ -681,7 +783,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `final_decisions`
@@ -720,6 +822,18 @@ ALTER TABLE `form15_responses`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
+-- AUTO_INCREMENT for table `form18a_responses`
+--
+ALTER TABLE `form18a_responses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `form19_responses`
+--
+ALTER TABLE `form19_responses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `member_files`
 --
 ALTER TABLE `member_files`
@@ -729,7 +843,7 @@ ALTER TABLE `member_files`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `password_resets`

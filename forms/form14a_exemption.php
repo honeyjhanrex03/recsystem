@@ -15,18 +15,20 @@ $protocol = $stmt->fetch();
 if (!$protocol) die("Protocol not found.");
 
 // Fetch Decision Date and Chair
-$stmtD = $pdo->prepare("SELECT fd.*, u.name as chair_name FROM final_decisions fd LEFT JOIN admins u ON fd.chair_id = u.admin_id WHERE fd.protocol_id = ? ORDER BY fd.decision_date DESC LIMIT 1");
+$stmtD = $pdo->prepare("SELECT fd.*, u.name as chair_name, u.signature as chair_sig FROM final_decisions fd LEFT JOIN admins u ON fd.chair_id = u.admin_id WHERE fd.protocol_id = ? ORDER BY fd.decision_date DESC LIMIT 1");
 $stmtD->execute([$protocol_id]);
 $decision = $stmtD->fetch();
 
 // REC Chair info
-$stmtC = $pdo->prepare("SELECT name FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
+$stmtC = $pdo->prepare("SELECT name, signature FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
 $stmtC->execute();
 $chair = $stmtC->fetch();
 $chair_name = $chair ? $chair['name'] : "DNSC REC CHAIRPERSON";
+$chair_sig = $chair ? $chair['signature'] : null;
 
 // Use the chair who actually approved it, fallback to current
 $decision_chair = ($decision && !empty($decision['chair_name'])) ? $decision['chair_name'] : $chair_name;
+$decision_chair_sig = ($decision && !empty($decision['chair_sig'])) ? $decision['chair_sig'] : $chair_sig;
 
 
 $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
@@ -36,6 +38,10 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
 <head>
     <meta charset="UTF-8">
     <title>REC FORM 14a - CERTIFICATE OF EXEMPTION FROM REVIEW</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="shortcut icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png?v=1.1">
     <style>
         @page { size: A4 portrait; margin: 0; }
         body { font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; line-height: 1.2; margin: 0; padding: 0; background-color: #f0f2f5; }
@@ -167,10 +173,15 @@ $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
                     <td style="width:50%;">
                         Very truly yours,
                     </td>
-                    <td style="width:50%; text-align:center;">
-                        <div style="width:250px; border-top:1px solid #000; margin:0 auto; padding-top:5pt;">
-                            <strong><?php echo strtoupper($decision_chair); ?></strong><br>
-                            <small>DNSC-REC Chair</small>
+                    <td style="width:50%; text-align:center; position:relative; vertical-align:bottom;">
+                        <div style="position:relative; display:inline-block;">
+                            <?php if ($decision_chair_sig): ?>
+                                <img src="<?php echo BASE_URL . 'uploads/signatures/' . $decision_chair_sig; ?>" style="position:absolute; bottom:25px; left:50%; transform:translateX(-50%); max-height: 60px; max-width: 140px; pointer-events:none; z-index:10;">
+                            <?php endif; ?>
+                            <div style="width:250px; border-top:1px solid #000; margin:0 auto; padding-top:5pt;">
+                                <strong><?php echo strtoupper($decision_chair); ?></strong><br>
+                                <small>DNSC-REC Chair</small>
+                            </div>
                         </div>
                     </td>
                 </tr>

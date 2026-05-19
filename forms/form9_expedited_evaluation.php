@@ -26,17 +26,22 @@ $reviewer_list = implode(', ', $reviewers);
 
 $logoSrc = BASE_URL . 'assets/images/dnsc_logo.png';
 
-// Fetch REC Chair Name
-$stmtC = $pdo->prepare("SELECT name FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
+// Fetch REC Chair Name and Signature
+$stmtC = $pdo->prepare("SELECT name, signature FROM admins WHERE role = 'rec_chair' AND status = 'active' LIMIT 1");
 $stmtC->execute();
 $chair = $stmtC->fetch();
 $chair_name = $chair ? $chair['name'] : "DNSC REC CHAIRPERSON"; // Fallback to institutional role
+$chair_sig = $chair ? $chair['signature'] : null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>REC FORM 09 - EVALUATION FORM EXPEDITED REVIEW</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="shortcut icon" type="image/png" href="../assets/images/logo.png?v=1.1">
+    <link rel="apple-touch-icon" href="../assets/images/logo.png?v=1.1">
     <style>
         @page { size: A4 portrait; margin: 0; }
         body { font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; line-height: 1.2; margin: 0; padding: 0; background-color: #f0f2f5; }
@@ -81,7 +86,7 @@ $chair_name = $chair ? $chair['name'] : "DNSC REC CHAIRPERSON"; // Fallback to i
 <body>
 
 <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-    <button onclick="window.print()" style="padding: 12px 30px; background: #1a2b4b; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; shadow: 0 4px 12px rgba(0,0,0,0.25);">
+    <button onclick="window.print()" style="padding: 12px 30px; background: #1a2b4b; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
         <i class="fas fa-print me-2"></i> PRINT FORM
     </button>
 </div>
@@ -190,12 +195,17 @@ while($r = $stmtI->fetch()) {
     </tr>
 </table>
 
-<div class="footer-sig">
-    <div class="sig-line"></div>
+<div class="footer-sig" style="margin-top: 40px; position: relative;">
+    <div style="position: relative; width: 250px; border-bottom: 2px solid black; text-align: center; margin-bottom: 5px; padding-bottom: 3px;">
+        <?php if ($chair_sig): ?>
+            <img src="<?php echo BASE_URL . 'uploads/signatures/' . $chair_sig; ?>" style="max-height: 55px; max-width: 140px; display: block; margin: 0 auto; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); pointer-events: none;">
+        <?php endif; ?>
+        <span style="font-weight: bold; text-transform: uppercase; font-size: 10pt;"><?php echo htmlspecialchars($chair_name); ?></span>
+    </div>
     <strong>REC Chair</strong>
 </div>
 
-<div class="page-number">
+<div class="page-num-footer">
     128
 </div>
 
